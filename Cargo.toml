@@ -1,0 +1,11 @@
+[package]
+name = "fgbfile"
+version = "0.0.1"
+edition = "2021"
+
+[dependencies]
+flatgeobuf = {version = "3.27.0", default-features = false}
+geo-types = "0.7.11"
+
+[dev-dependencies]
+geozero = "0.11.0"
