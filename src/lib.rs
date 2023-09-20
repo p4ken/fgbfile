@@ -140,20 +140,25 @@ impl<'a, W: Write> FgbFile<'a, W> {
     }
 
     /// Write features to the fgb file.
-    pub fn write_all<'b, I, T, const N: usize>(self, features: I) -> Result<(), GeozeroError>
+    pub fn write_all<'b, I, T, const N: usize>(self, features: I) -> Result<u64, GeozeroError>
     where
         I: IntoIterator<Item = &'b T>,
         T: ToFgb<N> + 'b,
     {
         let mut writer =
             FgbWriter::create_with_options(&self.name, GeometryType::Unknown, self.options)?;
+
+        let mut count = 0;
         for feat in features {
             feat.geometry().process_geom(&mut writer)?;
             for (i, prop) in feat.properties().iter().enumerate() {
                 writer.property(i, prop.name, &prop.value.0)?;
             }
             writer.feature_end(0)?;
+            count += 1;
         }
-        writer.write(self.buf)
+
+        writer.write(self.buf)?;
+        Ok(count)
     }
 }
