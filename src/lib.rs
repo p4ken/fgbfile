@@ -18,6 +18,16 @@ pub trait ToFgb<const N: usize> {
     fn properties(&self) -> [FgbProperty; N];
 }
 
+impl<T: ToFgb<N>, const N: usize> ToFgb<N> for &T {
+    fn geometry(&self) -> FgbGeometry {
+        (*self).geometry()
+    }
+
+    fn properties(&self) -> [FgbProperty; N] {
+        (*self).properties()
+    }
+}
+
 /// Output feature geometry
 #[derive(Debug)]
 pub enum FgbGeometry<'a> {
@@ -140,10 +150,10 @@ impl<'a, W: Write> FgbFile<'a, W> {
     }
 
     /// Write features to the fgb file.
-    pub fn write_all<'b, I, T, const N: usize>(self, features: I) -> Result<u64, GeozeroError>
+    pub fn write_all<I, T, const N: usize>(self, features: I) -> Result<u64, GeozeroError>
     where
-        I: IntoIterator<Item = &'b T>,
-        T: ToFgb<N> + 'b,
+        I: IntoIterator<Item = T>,
+        T: ToFgb<N>,
     {
         let mut writer =
             FgbWriter::create_with_options(&self.name, GeometryType::Unknown, self.options)?;
