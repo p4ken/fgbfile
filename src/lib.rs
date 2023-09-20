@@ -12,11 +12,13 @@ use flatgeobuf::{
     FgbWriter, FgbWriterOptions, GeometryType, GeozeroGeometry,
 };
 
+/// Output feature
 pub trait ToFgb<const N: usize> {
     fn geometry(&self) -> FgbGeometry;
     fn properties(&self) -> [FgbProperty; N];
 }
 
+/// Output feature geometry
 #[derive(Debug)]
 pub enum FgbGeometry<'a> {
     Point(Cow<'a, geo_types::Point>),
@@ -35,6 +37,7 @@ impl<'a> From<&'a geo_types::LineString> for FgbGeometry<'a> {
     }
 }
 
+/// Output feature property
 pub struct FgbProperty<'a> {
     name: &'a str,
     value: FgbValue<'a>,
@@ -49,6 +52,7 @@ impl<'a, T: Into<FgbValue<'a>>> From<(&'a str, T)> for FgbProperty<'a> {
     }
 }
 
+/// Output property value
 pub struct FgbValue<'a>(ColumnValue<'a>);
 
 impl From<bool> for FgbValue<'_> {
@@ -95,13 +99,14 @@ impl GeozeroGeometry for FgbGeometry<'_> {
     }
 }
 
-pub struct FgbFile<'a, W> {
-    buf: W,
+pub struct FgbFile<'a, B> {
+    buf: B,
     name: Cow<'a, str>,
     options: FgbWriterOptions<'static>,
 }
 
 impl<'a> FgbFile<'a, BufWriter<File>> {
+    /// Create a new FlatGeobuf file in the local path.
     pub fn create(path: &'a impl AsRef<Path>) -> std::io::Result<Self> {
         if let Some(parent) = path.as_ref().parent() {
             std::fs::create_dir_all(parent)?;
@@ -117,7 +122,7 @@ impl<'a> FgbFile<'a, BufWriter<File>> {
 }
 
 impl<'a, W: Write> FgbFile<'a, W> {
-    pub fn new(buf: W, name: Cow<'a, str>) -> Self {
+    fn new(buf: W, name: Cow<'a, str>) -> Self {
         Self {
             buf,
             name,

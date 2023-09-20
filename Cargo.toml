@@ -1,7 +1,11 @@
 [package]
 name = "fgbfile"
-version = "0.0.1"
+version = "0.1.0"
 edition = "2021"
+description = "Easily write local FlatGeobuf files."
+repository = "https://github.com/p4ken/fgbfile"
+license = "MIT"
+exclude = [".*"]
 
 [dependencies]
 flatgeobuf = {version = "3.27.0", default-features = false}
