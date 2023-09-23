@@ -71,9 +71,63 @@ impl From<bool> for FgbValue<'_> {
     }
 }
 
+impl From<i8> for FgbValue<'_> {
+    fn from(primitive: i8) -> Self {
+        Self(ColumnValue::Byte(primitive))
+    }
+}
+
+impl From<u8> for FgbValue<'_> {
+    fn from(primitive: u8) -> Self {
+        Self(ColumnValue::UByte(primitive))
+    }
+}
+
+impl From<i16> for FgbValue<'_> {
+    fn from(primitive: i16) -> Self {
+        Self(ColumnValue::Short(primitive))
+    }
+}
+
+impl From<u16> for FgbValue<'_> {
+    fn from(primitive: u16) -> Self {
+        Self(ColumnValue::UShort(primitive))
+    }
+}
+
+impl From<i32> for FgbValue<'_> {
+    fn from(primitive: i32) -> Self {
+        Self(ColumnValue::Int(primitive))
+    }
+}
+
 impl From<u32> for FgbValue<'_> {
     fn from(primitive: u32) -> Self {
         Self(ColumnValue::UInt(primitive))
+    }
+}
+
+impl From<i64> for FgbValue<'_> {
+    fn from(primitive: i64) -> Self {
+        Self(ColumnValue::Long(primitive))
+    }
+}
+
+impl From<u64> for FgbValue<'_> {
+    fn from(primitive: u64) -> Self {
+        Self(ColumnValue::ULong(primitive))
+    }
+}
+
+impl From<f32> for FgbValue<'_> {
+    fn from(primitive: f32) -> Self {
+        Self(ColumnValue::Float(primitive))
+    }
+}
+
+impl From<f64> for FgbValue<'_> {
+    fn from(primitive: f64) -> Self {
+        Self(ColumnValue::Double(primitive))
     }
 }
 
