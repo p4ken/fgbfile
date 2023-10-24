@@ -1,3 +1,5 @@
+mod ser;
+
 use std::{
     borrow::Cow,
     fs::File,
