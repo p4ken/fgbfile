@@ -1,4 +1,4 @@
-mod ser;
+pub mod ser;
 
 use std::{
     borrow::Cow,

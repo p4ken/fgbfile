@@ -1,6 +1,5 @@
 use std::{error::Error, fmt::Display};
 
-use geo_types::Point;
 use serde::{
     ser::{
         self, SerializeMap, SerializeSeq, SerializeStruct, SerializeStructVariant, SerializeTuple,
@@ -9,29 +8,13 @@ use serde::{
     Serialize, Serializer,
 };
 
-// todo
-fn main() {
-    let layer = Layer1 {
-        geometry: Point::new(11, 12),
-        number: 1,
-    };
-    let mut format = FgbSerializer::new();
-    layer.serialize(&mut format).ok();
-}
-
-#[derive(Serialize)]
-struct Layer1 {
-    geometry: Point<i32>,
-    number: i32,
-}
-
-struct FgbSerializer {
+pub struct FgbSerializer {
     geometory_name: &'static str,
     // writer: FgbWriter<'static>,
 }
 
 impl FgbSerializer {
-    fn new() -> Self {
+    pub fn new() -> Self {
         Self {
             geometory_name: "geometry",
         }
@@ -348,7 +331,7 @@ impl<'a> SerializeStructVariant for &mut FgbSerializer {
 }
 
 #[derive(Debug)]
-struct SerializeError(String);
+pub struct SerializeError(String);
 
 impl ser::Error for SerializeError {
     fn custom<T>(msg: T) -> Self
