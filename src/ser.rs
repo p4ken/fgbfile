@@ -8,22 +8,23 @@ use serde::{
     Serialize, Serializer,
 };
 
-pub struct FgbSerializer {
-    geometory_name: &'static str,
+pub struct LayerSink {
+    geometory_key: &'static str,
+    current_key: &'static str,
     // writer: FgbWriter<'static>,
 }
 
-impl FgbSerializer {
+impl LayerSink {
     pub fn new() -> Self {
         Self {
-            geometory_name: "geometry",
+            geometory_key: "geometry",
+            current_key: "",
         }
     }
 }
 
-impl<'a> Serializer for &mut FgbSerializer {
+impl<'a> Serializer for &mut LayerSink {
     type Ok = ();
-
     type Error = SerializeError;
 
     // Associated types for keeping track of additional state while serializing
@@ -51,7 +52,8 @@ impl<'a> Serializer for &mut FgbSerializer {
     }
 
     fn serialize_i32(self, v: i32) -> Result<Self::Ok, Self::Error> {
-        todo!()
+        dbg!(v);
+        Ok(())
     }
 
     fn serialize_i64(self, v: i64) -> Result<Self::Ok, Self::Error> {
@@ -130,7 +132,8 @@ impl<'a> Serializer for &mut FgbSerializer {
     where
         T: Serialize,
     {
-        todo!()
+        dbg!(name);
+        value.serialize(&mut *self)
     }
 
     fn serialize_newtype_variant<T: ?Sized>(
@@ -197,7 +200,7 @@ impl<'a> Serializer for &mut FgbSerializer {
     }
 }
 
-impl<'a> SerializeSeq for &mut FgbSerializer {
+impl<'a> SerializeSeq for &mut LayerSink {
     type Ok = ();
     type Error = SerializeError;
 
@@ -213,7 +216,7 @@ impl<'a> SerializeSeq for &mut FgbSerializer {
     }
 }
 
-impl<'a> SerializeTuple for &mut FgbSerializer {
+impl<'a> SerializeTuple for &mut LayerSink {
     type Ok = ();
     type Error = SerializeError;
 
@@ -229,7 +232,7 @@ impl<'a> SerializeTuple for &mut FgbSerializer {
     }
 }
 
-impl<'a> SerializeTupleStruct for &mut FgbSerializer {
+impl<'a> SerializeTupleStruct for &mut LayerSink {
     type Ok = ();
     type Error = SerializeError;
 
@@ -245,7 +248,7 @@ impl<'a> SerializeTupleStruct for &mut FgbSerializer {
     }
 }
 
-impl<'a> SerializeTupleVariant for &mut FgbSerializer {
+impl<'a> SerializeTupleVariant for &mut LayerSink {
     type Ok = ();
     type Error = SerializeError;
 
@@ -261,7 +264,7 @@ impl<'a> SerializeTupleVariant for &mut FgbSerializer {
     }
 }
 
-impl<'a> SerializeMap for &mut FgbSerializer {
+impl<'a> SerializeMap for &mut LayerSink {
     type Ok = ();
     type Error = SerializeError;
 
@@ -284,7 +287,7 @@ impl<'a> SerializeMap for &mut FgbSerializer {
     }
 }
 
-impl<'a> SerializeStruct for &mut FgbSerializer {
+impl<'a> SerializeStruct for &mut LayerSink {
     type Ok = ();
     type Error = SerializeError;
 
@@ -292,25 +295,22 @@ impl<'a> SerializeStruct for &mut FgbSerializer {
         &mut self,
         key: &'static str,
         value: &T,
-    ) -> Result<(), Self::Error>
+    ) -> Result<Self::Ok, Self::Error>
     where
         T: Serialize,
     {
-        dbg!(key); // geometry
-        if key == self.geometory_name {
-            // self.serialize_geometry(value)
-        } else {
-            // self.serialize_property(value)
-        }
-        todo!()
+        dbg!(key);
+        self.current_key = key;
+        value.serialize(&mut **self)
     }
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
-        todo!()
+        dbg!();
+        Ok(())
     }
 }
 
-impl<'a> SerializeStructVariant for &mut FgbSerializer {
+impl<'a> SerializeStructVariant for &mut LayerSink {
     type Ok = ();
     type Error = SerializeError;
 
