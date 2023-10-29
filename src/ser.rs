@@ -1,4 +1,4 @@
-use std::{error::Error, fmt::Display};
+use std::{any::type_name, error::Error, fmt::Display};
 
 use serde::{
     ser::{
@@ -8,13 +8,13 @@ use serde::{
     Serialize, Serializer,
 };
 
-pub struct LayerSink {
+pub struct LayerSerializer {
     geometory_key: &'static str,
     current_key: &'static str,
     // writer: FgbWriter<'static>,
 }
 
-impl LayerSink {
+impl LayerSerializer {
     pub fn new() -> Self {
         Self {
             geometory_key: "geometry",
@@ -23,7 +23,7 @@ impl LayerSink {
     }
 }
 
-impl<'a> Serializer for &mut LayerSink {
+impl<'a> Serializer for &mut LayerSerializer {
     type Ok = ();
     type Error = SerializeError;
 
@@ -52,8 +52,7 @@ impl<'a> Serializer for &mut LayerSink {
     }
 
     fn serialize_i32(self, v: i32) -> Result<Self::Ok, Self::Error> {
-        dbg!(v);
-        Ok(())
+        todo!()
     }
 
     fn serialize_i64(self, v: i64) -> Result<Self::Ok, Self::Error> {
@@ -81,7 +80,8 @@ impl<'a> Serializer for &mut LayerSink {
     }
 
     fn serialize_f64(self, v: f64) -> Result<Self::Ok, Self::Error> {
-        todo!()
+        dbg!(v);
+        Ok(())
     }
 
     fn serialize_char(self, v: char) -> Result<Self::Ok, Self::Error> {
@@ -132,6 +132,7 @@ impl<'a> Serializer for &mut LayerSink {
     where
         T: Serialize,
     {
+        // LineStringよりもMultiPointの方が1回多く呼ばれる
         dbg!(name);
         value.serialize(&mut *self)
     }
@@ -146,15 +147,20 @@ impl<'a> Serializer for &mut LayerSink {
     where
         T: Serialize,
     {
-        todo!()
+        dbg!(name);
+        dbg!(variant_index);
+        dbg!(variant);
+        value.serialize(self)
     }
 
     fn serialize_seq(self, len: Option<usize>) -> Result<Self::SerializeSeq, Self::Error> {
-        todo!()
+        dbg!(len);
+        Ok(self)
     }
 
     fn serialize_tuple(self, len: usize) -> Result<Self::SerializeTuple, Self::Error> {
-        todo!()
+        dbg!(len);
+        Ok(self)
     }
 
     fn serialize_tuple_struct(
@@ -200,7 +206,24 @@ impl<'a> Serializer for &mut LayerSink {
     }
 }
 
-impl<'a> SerializeSeq for &mut LayerSink {
+impl<'a> SerializeSeq for &mut LayerSerializer {
+    type Ok = ();
+    type Error = SerializeError;
+
+    fn serialize_element<T: ?Sized>(&mut self, value: &T) -> Result<(), Self::Error>
+    where
+        T: Serialize,
+    {
+        value.serialize(&mut **self)
+    }
+
+    fn end(self) -> Result<Self::Ok, Self::Error> {
+        dbg!();
+        Ok(())
+    }
+}
+
+impl<'a> SerializeTuple for &mut LayerSerializer {
     type Ok = ();
     type Error = SerializeError;
 
@@ -216,23 +239,7 @@ impl<'a> SerializeSeq for &mut LayerSink {
     }
 }
 
-impl<'a> SerializeTuple for &mut LayerSink {
-    type Ok = ();
-    type Error = SerializeError;
-
-    fn serialize_element<T: ?Sized>(&mut self, value: &T) -> Result<(), Self::Error>
-    where
-        T: Serialize,
-    {
-        todo!()
-    }
-
-    fn end(self) -> Result<Self::Ok, Self::Error> {
-        todo!()
-    }
-}
-
-impl<'a> SerializeTupleStruct for &mut LayerSink {
+impl<'a> SerializeTupleStruct for &mut LayerSerializer {
     type Ok = ();
     type Error = SerializeError;
 
@@ -248,7 +255,7 @@ impl<'a> SerializeTupleStruct for &mut LayerSink {
     }
 }
 
-impl<'a> SerializeTupleVariant for &mut LayerSink {
+impl<'a> SerializeTupleVariant for &mut LayerSerializer {
     type Ok = ();
     type Error = SerializeError;
 
@@ -264,7 +271,7 @@ impl<'a> SerializeTupleVariant for &mut LayerSink {
     }
 }
 
-impl<'a> SerializeMap for &mut LayerSink {
+impl<'a> SerializeMap for &mut LayerSerializer {
     type Ok = ();
     type Error = SerializeError;
 
@@ -287,7 +294,7 @@ impl<'a> SerializeMap for &mut LayerSink {
     }
 }
 
-impl<'a> SerializeStruct for &mut LayerSink {
+impl<'a> SerializeStruct for &mut LayerSerializer {
     type Ok = ();
     type Error = SerializeError;
 
@@ -295,7 +302,7 @@ impl<'a> SerializeStruct for &mut LayerSink {
         &mut self,
         key: &'static str,
         value: &T,
-    ) -> Result<Self::Ok, Self::Error>
+    ) -> Result<(), Self::Error>
     where
         T: Serialize,
     {
@@ -310,7 +317,7 @@ impl<'a> SerializeStruct for &mut LayerSink {
     }
 }
 
-impl<'a> SerializeStructVariant for &mut LayerSink {
+impl<'a> SerializeStructVariant for &mut LayerSerializer {
     type Ok = ();
     type Error = SerializeError;
 
