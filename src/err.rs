@@ -5,7 +5,7 @@ use serde::ser;
 #[derive(Debug)]
 pub enum FgbFileError {
     Unimplemented,
-    InputDataError(String),
+    DataSouceCaused(String),
 }
 
 impl ser::Error for FgbFileError {
@@ -13,7 +13,7 @@ impl ser::Error for FgbFileError {
     where
         T: Display,
     {
-        Self::InputDataError(msg.to_string())
+        Self::DataSouceCaused(msg.to_string())
     }
 }
 
@@ -21,7 +21,7 @@ impl Display for FgbFileError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Unimplemented => f.write_str("not implemented"),
-            Self::InputDataError(msg) => f.write_str(&msg),
+            Self::DataSouceCaused(msg) => f.write_str(&msg),
         }
     }
 }

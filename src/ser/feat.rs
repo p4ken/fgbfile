@@ -12,7 +12,7 @@ use super::geom::GeometrySerializer;
 
 pub struct FeatureSerializer {
     geometory_key: &'static str,
-    key_stack: Vec<&'static str>,
+    current_key: &'static str,
     geometry_serializer: GeometrySerializer,
     // writer: FgbWriter<'static>,
 }
@@ -21,7 +21,7 @@ impl FeatureSerializer {
     pub fn new() -> Self {
         Self {
             geometory_key: "geometry",
-            key_stack: vec![],
+            current_key: "",
             geometry_serializer: GeometrySerializer::new(),
         }
     }
@@ -159,6 +159,10 @@ impl<'a> Serializer for &mut FeatureSerializer {
     }
 
     fn serialize_seq(self, len: Option<usize>) -> Result<Self::SerializeSeq, Self::Error> {
+        if self.current_key == self.geometory_key {
+            println!("It's geometry.");
+            // GeometrySerializerを返したいけど、返り値の型は1つに固定されている
+        }
         dbg!(len);
         Ok(self)
     }
@@ -311,13 +315,12 @@ impl<'a> SerializeStruct for &mut FeatureSerializer {
     where
         T: Serialize,
     {
-        self.key_stack.push(key);
-        dbg!(&self.key_stack);
+        self.current_key = dbg!(key);
         value.serialize(&mut **self)
     }
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
-        dbg!(self.key_stack.pop().unwrap_or("")); // x削除忘れ yしか消えない
+        self.current_key = "";
         Ok(())
     }
 }
