@@ -1,11 +1,11 @@
-use fgbfile::ser::LayerSerializer;
+use fgbfile::FeatureSerializer;
 use geo_types::{
     Coord, Geometry, GeometryCollection, LineString, MultiLineString, MultiPoint, Point, Polygon,
 };
 use serde::Serialize;
 
 fn main() {
-    let mut ser = LayerSerializer::new();
+    let mut ser = FeatureSerializer::new();
 
     let point = Point::new(11., 12.);
     let attribute = 1.;

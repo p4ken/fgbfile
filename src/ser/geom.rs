@@ -1,20 +1,20 @@
-use std::{any::type_name, error::Error, fmt::Display};
-
 use serde::{
     ser::{
-        self, SerializeMap, SerializeSeq, SerializeStruct, SerializeStructVariant, SerializeTuple,
+        SerializeMap, SerializeSeq, SerializeStruct, SerializeStructVariant, SerializeTuple,
         SerializeTupleStruct, SerializeTupleVariant,
     },
     Serialize, Serializer,
 };
 
-pub struct LayerSerializer {
+use crate::FgbFileError;
+
+pub struct GeometrySerializer {
     geometory_key: &'static str,
     current_key: &'static str,
     // writer: FgbWriter<'static>,
 }
 
-impl LayerSerializer {
+impl GeometrySerializer {
     pub fn new() -> Self {
         Self {
             geometory_key: "geometry",
@@ -23,9 +23,9 @@ impl LayerSerializer {
     }
 }
 
-impl<'a> Serializer for &mut LayerSerializer {
+impl<'a> Serializer for &mut GeometrySerializer {
     type Ok = ();
-    type Error = SerializeError;
+    type Error = FgbFileError;
 
     // Associated types for keeping track of additional state while serializing
     // compound data structures like sequences and maps. In this case no
@@ -206,9 +206,9 @@ impl<'a> Serializer for &mut LayerSerializer {
     }
 }
 
-impl<'a> SerializeSeq for &mut LayerSerializer {
+impl<'a> SerializeSeq for &mut GeometrySerializer {
     type Ok = ();
-    type Error = SerializeError;
+    type Error = FgbFileError;
 
     fn serialize_element<T: ?Sized>(&mut self, value: &T) -> Result<(), Self::Error>
     where
@@ -223,9 +223,9 @@ impl<'a> SerializeSeq for &mut LayerSerializer {
     }
 }
 
-impl<'a> SerializeTuple for &mut LayerSerializer {
+impl<'a> SerializeTuple for &mut GeometrySerializer {
     type Ok = ();
-    type Error = SerializeError;
+    type Error = FgbFileError;
 
     fn serialize_element<T: ?Sized>(&mut self, value: &T) -> Result<(), Self::Error>
     where
@@ -239,9 +239,9 @@ impl<'a> SerializeTuple for &mut LayerSerializer {
     }
 }
 
-impl<'a> SerializeTupleStruct for &mut LayerSerializer {
+impl<'a> SerializeTupleStruct for &mut GeometrySerializer {
     type Ok = ();
-    type Error = SerializeError;
+    type Error = FgbFileError;
 
     fn serialize_field<T: ?Sized>(&mut self, value: &T) -> Result<(), Self::Error>
     where
@@ -255,9 +255,9 @@ impl<'a> SerializeTupleStruct for &mut LayerSerializer {
     }
 }
 
-impl<'a> SerializeTupleVariant for &mut LayerSerializer {
+impl<'a> SerializeTupleVariant for &mut GeometrySerializer {
     type Ok = ();
-    type Error = SerializeError;
+    type Error = FgbFileError;
 
     fn serialize_field<T: ?Sized>(&mut self, value: &T) -> Result<(), Self::Error>
     where
@@ -271,9 +271,9 @@ impl<'a> SerializeTupleVariant for &mut LayerSerializer {
     }
 }
 
-impl<'a> SerializeMap for &mut LayerSerializer {
+impl<'a> SerializeMap for &mut GeometrySerializer {
     type Ok = ();
-    type Error = SerializeError;
+    type Error = FgbFileError;
 
     fn serialize_key<T: ?Sized>(&mut self, key: &T) -> Result<(), Self::Error>
     where
@@ -294,9 +294,9 @@ impl<'a> SerializeMap for &mut LayerSerializer {
     }
 }
 
-impl<'a> SerializeStruct for &mut LayerSerializer {
+impl<'a> SerializeStruct for &mut GeometrySerializer {
     type Ok = ();
-    type Error = SerializeError;
+    type Error = FgbFileError;
 
     fn serialize_field<T: ?Sized>(
         &mut self,
@@ -317,9 +317,9 @@ impl<'a> SerializeStruct for &mut LayerSerializer {
     }
 }
 
-impl<'a> SerializeStructVariant for &mut LayerSerializer {
+impl<'a> SerializeStructVariant for &mut GeometrySerializer {
     type Ok = ();
-    type Error = SerializeError;
+    type Error = FgbFileError;
 
     fn serialize_field<T: ?Sized>(
         &mut self,
@@ -336,23 +336,3 @@ impl<'a> SerializeStructVariant for &mut LayerSerializer {
         todo!()
     }
 }
-
-#[derive(Debug)]
-pub struct SerializeError(String);
-
-impl ser::Error for SerializeError {
-    fn custom<T>(msg: T) -> Self
-    where
-        T: Display,
-    {
-        SerializeError(msg.to_string())
-    }
-}
-
-impl Display for SerializeError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(&self.0)
-    }
-}
-
-impl Error for SerializeError {}
