@@ -164,6 +164,8 @@ impl<'a> Serializer for &mut FeatureSerializer {
             // GeometrySerializerを返したいけど、返り値の型は1つに固定されている
         }
         dbg!(len);
+
+        // PropertySerializerを返したい
         Ok(self)
     }
 
