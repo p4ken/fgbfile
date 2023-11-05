@@ -6,7 +6,7 @@ use serde::{
     Serialize, Serializer,
 };
 
-use super::{FgbFileError, GeometrySerializer};
+use super::{GeometrySerializer, SerializeError};
 
 pub enum FieldSerializer {
     Geom(GeometrySerializer),
@@ -15,7 +15,7 @@ pub enum FieldSerializer {
 
 impl Serializer for &mut FieldSerializer {
     type Ok = ();
-    type Error = FgbFileError;
+    type Error = SerializeError;
 
     type SerializeSeq = Self;
     type SerializeTuple = Self;
@@ -194,7 +194,7 @@ impl Serializer for &mut FieldSerializer {
 
 impl<'a> SerializeSeq for &mut FieldSerializer {
     type Ok = ();
-    type Error = FgbFileError;
+    type Error = SerializeError;
 
     fn serialize_element<T: ?Sized>(&mut self, value: &T) -> Result<(), Self::Error>
     where
@@ -211,7 +211,7 @@ impl<'a> SerializeSeq for &mut FieldSerializer {
 
 impl<'a> SerializeTuple for &mut FieldSerializer {
     type Ok = ();
-    type Error = FgbFileError;
+    type Error = SerializeError;
 
     fn serialize_element<T: ?Sized>(&mut self, value: &T) -> Result<(), Self::Error>
     where
@@ -227,7 +227,7 @@ impl<'a> SerializeTuple for &mut FieldSerializer {
 
 impl<'a> SerializeTupleStruct for &mut FieldSerializer {
     type Ok = ();
-    type Error = FgbFileError;
+    type Error = SerializeError;
 
     fn serialize_field<T: ?Sized>(&mut self, value: &T) -> Result<(), Self::Error>
     where
@@ -243,7 +243,7 @@ impl<'a> SerializeTupleStruct for &mut FieldSerializer {
 
 impl<'a> SerializeTupleVariant for &mut FieldSerializer {
     type Ok = ();
-    type Error = FgbFileError;
+    type Error = SerializeError;
 
     fn serialize_field<T: ?Sized>(&mut self, value: &T) -> Result<(), Self::Error>
     where
@@ -259,7 +259,7 @@ impl<'a> SerializeTupleVariant for &mut FieldSerializer {
 
 impl<'a> SerializeMap for &mut FieldSerializer {
     type Ok = ();
-    type Error = FgbFileError;
+    type Error = SerializeError;
 
     fn serialize_key<T: ?Sized>(&mut self, key: &T) -> Result<(), Self::Error>
     where
@@ -282,7 +282,7 @@ impl<'a> SerializeMap for &mut FieldSerializer {
 
 impl<'a> SerializeStruct for &mut FieldSerializer {
     type Ok = ();
-    type Error = FgbFileError;
+    type Error = SerializeError;
 
     fn serialize_field<T: ?Sized>(
         &mut self,
@@ -303,7 +303,7 @@ impl<'a> SerializeStruct for &mut FieldSerializer {
 
 impl<'a> SerializeStructVariant for &mut FieldSerializer {
     type Ok = ();
-    type Error = FgbFileError;
+    type Error = SerializeError;
 
     fn serialize_field<T: ?Sized>(
         &mut self,
@@ -323,7 +323,7 @@ impl<'a> SerializeStructVariant for &mut FieldSerializer {
 
 impl<'a> SerializeSeq for FieldSerializer {
     type Ok = ();
-    type Error = FgbFileError;
+    type Error = SerializeError;
 
     fn serialize_element<T: ?Sized>(&mut self, value: &T) -> Result<(), Self::Error>
     where
@@ -341,7 +341,7 @@ impl<'a> SerializeSeq for FieldSerializer {
 
 impl<'a> SerializeTuple for FieldSerializer {
     type Ok = ();
-    type Error = FgbFileError;
+    type Error = SerializeError;
 
     fn serialize_element<T: ?Sized>(&mut self, value: &T) -> Result<(), Self::Error>
     where
@@ -357,7 +357,7 @@ impl<'a> SerializeTuple for FieldSerializer {
 
 impl<'a> SerializeTupleStruct for FieldSerializer {
     type Ok = ();
-    type Error = FgbFileError;
+    type Error = SerializeError;
 
     fn serialize_field<T: ?Sized>(&mut self, value: &T) -> Result<(), Self::Error>
     where
@@ -373,7 +373,7 @@ impl<'a> SerializeTupleStruct for FieldSerializer {
 
 impl<'a> SerializeTupleVariant for FieldSerializer {
     type Ok = ();
-    type Error = FgbFileError;
+    type Error = SerializeError;
 
     fn serialize_field<T: ?Sized>(&mut self, value: &T) -> Result<(), Self::Error>
     where
@@ -389,7 +389,7 @@ impl<'a> SerializeTupleVariant for FieldSerializer {
 
 impl<'a> SerializeMap for FieldSerializer {
     type Ok = ();
-    type Error = FgbFileError;
+    type Error = SerializeError;
 
     fn serialize_key<T: ?Sized>(&mut self, key: &T) -> Result<(), Self::Error>
     where
@@ -412,7 +412,7 @@ impl<'a> SerializeMap for FieldSerializer {
 
 impl<'a> SerializeStruct for FieldSerializer {
     type Ok = ();
-    type Error = FgbFileError;
+    type Error = SerializeError;
 
     fn serialize_field<T: ?Sized>(
         &mut self,
@@ -433,7 +433,7 @@ impl<'a> SerializeStruct for FieldSerializer {
 
 impl<'a> SerializeStructVariant for FieldSerializer {
     type Ok = ();
-    type Error = FgbFileError;
+    type Error = SerializeError;
 
     fn serialize_field<T: ?Sized>(
         &mut self,

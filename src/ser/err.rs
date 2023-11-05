@@ -3,12 +3,12 @@ use std::{error::Error, fmt::Display};
 use serde::ser;
 
 #[derive(Debug)]
-pub enum FgbFileError {
+pub enum SerializeError {
     Unimplemented,
     DataSouceCaused(String),
 }
 
-impl ser::Error for FgbFileError {
+impl ser::Error for SerializeError {
     fn custom<T>(msg: T) -> Self
     where
         T: Display,
@@ -17,7 +17,7 @@ impl ser::Error for FgbFileError {
     }
 }
 
-impl Display for FgbFileError {
+impl Display for SerializeError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Unimplemented => f.write_str("not implemented"),
@@ -26,4 +26,4 @@ impl Display for FgbFileError {
     }
 }
 
-impl Error for FgbFileError {}
+impl Error for SerializeError {}

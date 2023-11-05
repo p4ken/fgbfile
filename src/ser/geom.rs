@@ -6,7 +6,7 @@ use serde::{
     Serialize, Serializer,
 };
 
-use super::FgbFileError;
+use super::SerializeError;
 
 pub struct GeometrySerializer {
     geometory_key: &'static str,
@@ -25,7 +25,7 @@ impl GeometrySerializer {
 
 impl<'a> Serializer for &mut GeometrySerializer {
     type Ok = ();
-    type Error = FgbFileError;
+    type Error = SerializeError;
 
     // Associated types for keeping track of additional state while serializing
     // compound data structures like sequences and maps. In this case no
@@ -208,7 +208,7 @@ impl<'a> Serializer for &mut GeometrySerializer {
 
 impl<'a> SerializeSeq for &mut GeometrySerializer {
     type Ok = ();
-    type Error = FgbFileError;
+    type Error = SerializeError;
 
     fn serialize_element<T: ?Sized>(&mut self, value: &T) -> Result<(), Self::Error>
     where
@@ -225,7 +225,7 @@ impl<'a> SerializeSeq for &mut GeometrySerializer {
 
 impl<'a> SerializeTuple for &mut GeometrySerializer {
     type Ok = ();
-    type Error = FgbFileError;
+    type Error = SerializeError;
 
     fn serialize_element<T: ?Sized>(&mut self, value: &T) -> Result<(), Self::Error>
     where
@@ -241,7 +241,7 @@ impl<'a> SerializeTuple for &mut GeometrySerializer {
 
 impl<'a> SerializeTupleStruct for &mut GeometrySerializer {
     type Ok = ();
-    type Error = FgbFileError;
+    type Error = SerializeError;
 
     fn serialize_field<T: ?Sized>(&mut self, value: &T) -> Result<(), Self::Error>
     where
@@ -257,7 +257,7 @@ impl<'a> SerializeTupleStruct for &mut GeometrySerializer {
 
 impl<'a> SerializeTupleVariant for &mut GeometrySerializer {
     type Ok = ();
-    type Error = FgbFileError;
+    type Error = SerializeError;
 
     fn serialize_field<T: ?Sized>(&mut self, value: &T) -> Result<(), Self::Error>
     where
@@ -273,7 +273,7 @@ impl<'a> SerializeTupleVariant for &mut GeometrySerializer {
 
 impl<'a> SerializeMap for &mut GeometrySerializer {
     type Ok = ();
-    type Error = FgbFileError;
+    type Error = SerializeError;
 
     fn serialize_key<T: ?Sized>(&mut self, key: &T) -> Result<(), Self::Error>
     where
@@ -296,7 +296,7 @@ impl<'a> SerializeMap for &mut GeometrySerializer {
 
 impl<'a> SerializeStruct for &mut GeometrySerializer {
     type Ok = ();
-    type Error = FgbFileError;
+    type Error = SerializeError;
 
     fn serialize_field<T: ?Sized>(
         &mut self,
@@ -319,7 +319,7 @@ impl<'a> SerializeStruct for &mut GeometrySerializer {
 
 impl<'a> SerializeStructVariant for &mut GeometrySerializer {
     type Ok = ();
-    type Error = FgbFileError;
+    type Error = SerializeError;
 
     fn serialize_field<T: ?Sized>(
         &mut self,

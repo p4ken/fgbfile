@@ -4,7 +4,7 @@ mod field;
 mod geom;
 mod prop;
 
-use err::FgbFileError;
+use err::SerializeError;
 pub use feat::FeatureSerializer;
 use field::FieldSerializer;
 use geom::GeometrySerializer;

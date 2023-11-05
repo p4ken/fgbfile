@@ -1,6 +1,6 @@
 use serde::{Serialize, Serializer};
 
-use super::{FgbFileError, FieldSerializer, GeometrySerializer};
+use super::{FieldSerializer, GeometrySerializer, SerializeError};
 
 pub struct FeatureSerializer {
     geometory_key: &'static str,
@@ -21,7 +21,7 @@ impl FeatureSerializer {
 
 impl<'a> Serializer for &mut FeatureSerializer {
     type Ok = ();
-    type Error = FgbFileError;
+    type Error = SerializeError;
 
     type SerializeSeq = FieldSerializer;
     type SerializeTuple = Self::SerializeSeq;
