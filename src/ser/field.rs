@@ -6,31 +6,17 @@ use serde::{
     Serialize, Serializer,
 };
 
-use super::FgbFileError;
+use super::{FgbFileError, GeometrySerializer};
 
-pub struct GeometrySerializer {
-    geometory_key: &'static str,
-    current_key: &'static str,
-    // writer: FgbWriter<'static>,
+pub enum FieldSerializer {
+    Geom(GeometrySerializer),
+    Prop,
 }
 
-impl GeometrySerializer {
-    pub fn new() -> Self {
-        Self {
-            geometory_key: "geometry",
-            current_key: "",
-        }
-    }
-}
-
-impl<'a> Serializer for &mut GeometrySerializer {
+impl Serializer for &mut FieldSerializer {
     type Ok = ();
     type Error = FgbFileError;
 
-    // Associated types for keeping track of additional state while serializing
-    // compound data structures like sequences and maps. In this case no
-    // additional state is required beyond what is already stored in the
-    // Serializer struct.
     type SerializeSeq = Self;
     type SerializeTuple = Self;
     type SerializeTupleStruct = Self;
@@ -80,7 +66,7 @@ impl<'a> Serializer for &mut GeometrySerializer {
     }
 
     fn serialize_f64(self, v: f64) -> Result<Self::Ok, Self::Error> {
-        dbg!(v);
+        dbg!(v); // ここでやっと「LineStringだ」と分かる
         Ok(())
     }
 
@@ -190,8 +176,8 @@ impl<'a> Serializer for &mut GeometrySerializer {
         name: &'static str,
         len: usize,
     ) -> Result<Self::SerializeStruct, Self::Error> {
-        dbg!(name); // Layer1
-        dbg!(len); // 2
+        dbg!(name);
+        dbg!(len);
         Ok(self)
     }
 
@@ -206,7 +192,7 @@ impl<'a> Serializer for &mut GeometrySerializer {
     }
 }
 
-impl<'a> SerializeSeq for &mut GeometrySerializer {
+impl<'a> SerializeSeq for &mut FieldSerializer {
     type Ok = ();
     type Error = FgbFileError;
 
@@ -223,7 +209,7 @@ impl<'a> SerializeSeq for &mut GeometrySerializer {
     }
 }
 
-impl<'a> SerializeTuple for &mut GeometrySerializer {
+impl<'a> SerializeTuple for &mut FieldSerializer {
     type Ok = ();
     type Error = FgbFileError;
 
@@ -239,7 +225,7 @@ impl<'a> SerializeTuple for &mut GeometrySerializer {
     }
 }
 
-impl<'a> SerializeTupleStruct for &mut GeometrySerializer {
+impl<'a> SerializeTupleStruct for &mut FieldSerializer {
     type Ok = ();
     type Error = FgbFileError;
 
@@ -255,7 +241,7 @@ impl<'a> SerializeTupleStruct for &mut GeometrySerializer {
     }
 }
 
-impl<'a> SerializeTupleVariant for &mut GeometrySerializer {
+impl<'a> SerializeTupleVariant for &mut FieldSerializer {
     type Ok = ();
     type Error = FgbFileError;
 
@@ -271,7 +257,7 @@ impl<'a> SerializeTupleVariant for &mut GeometrySerializer {
     }
 }
 
-impl<'a> SerializeMap for &mut GeometrySerializer {
+impl<'a> SerializeMap for &mut FieldSerializer {
     type Ok = ();
     type Error = FgbFileError;
 
@@ -294,7 +280,7 @@ impl<'a> SerializeMap for &mut GeometrySerializer {
     }
 }
 
-impl<'a> SerializeStruct for &mut GeometrySerializer {
+impl<'a> SerializeStruct for &mut FieldSerializer {
     type Ok = ();
     type Error = FgbFileError;
 
@@ -306,8 +292,6 @@ impl<'a> SerializeStruct for &mut GeometrySerializer {
     where
         T: Serialize,
     {
-        dbg!(key);
-        self.current_key = key;
         value.serialize(&mut **self)
     }
 
@@ -317,7 +301,137 @@ impl<'a> SerializeStruct for &mut GeometrySerializer {
     }
 }
 
-impl<'a> SerializeStructVariant for &mut GeometrySerializer {
+impl<'a> SerializeStructVariant for &mut FieldSerializer {
+    type Ok = ();
+    type Error = FgbFileError;
+
+    fn serialize_field<T: ?Sized>(
+        &mut self,
+        key: &'static str,
+        value: &T,
+    ) -> Result<(), Self::Error>
+    where
+        T: Serialize,
+    {
+        todo!()
+    }
+
+    fn end(self) -> Result<Self::Ok, Self::Error> {
+        todo!()
+    }
+}
+
+impl<'a> SerializeSeq for FieldSerializer {
+    type Ok = ();
+    type Error = FgbFileError;
+
+    fn serialize_element<T: ?Sized>(&mut self, value: &T) -> Result<(), Self::Error>
+    where
+        T: Serialize,
+    {
+        todo!()
+        // value.serialize(&mut **self)
+    }
+
+    fn end(self) -> Result<Self::Ok, Self::Error> {
+        dbg!();
+        Ok(())
+    }
+}
+
+impl<'a> SerializeTuple for FieldSerializer {
+    type Ok = ();
+    type Error = FgbFileError;
+
+    fn serialize_element<T: ?Sized>(&mut self, value: &T) -> Result<(), Self::Error>
+    where
+        T: Serialize,
+    {
+        todo!()
+    }
+
+    fn end(self) -> Result<Self::Ok, Self::Error> {
+        todo!()
+    }
+}
+
+impl<'a> SerializeTupleStruct for FieldSerializer {
+    type Ok = ();
+    type Error = FgbFileError;
+
+    fn serialize_field<T: ?Sized>(&mut self, value: &T) -> Result<(), Self::Error>
+    where
+        T: Serialize,
+    {
+        todo!()
+    }
+
+    fn end(self) -> Result<Self::Ok, Self::Error> {
+        todo!()
+    }
+}
+
+impl<'a> SerializeTupleVariant for FieldSerializer {
+    type Ok = ();
+    type Error = FgbFileError;
+
+    fn serialize_field<T: ?Sized>(&mut self, value: &T) -> Result<(), Self::Error>
+    where
+        T: Serialize,
+    {
+        todo!()
+    }
+
+    fn end(self) -> Result<Self::Ok, Self::Error> {
+        todo!()
+    }
+}
+
+impl<'a> SerializeMap for FieldSerializer {
+    type Ok = ();
+    type Error = FgbFileError;
+
+    fn serialize_key<T: ?Sized>(&mut self, key: &T) -> Result<(), Self::Error>
+    where
+        T: Serialize,
+    {
+        todo!()
+    }
+
+    fn serialize_value<T: ?Sized>(&mut self, value: &T) -> Result<(), Self::Error>
+    where
+        T: Serialize,
+    {
+        todo!()
+    }
+
+    fn end(self) -> Result<Self::Ok, Self::Error> {
+        todo!()
+    }
+}
+
+impl<'a> SerializeStruct for FieldSerializer {
+    type Ok = ();
+    type Error = FgbFileError;
+
+    fn serialize_field<T: ?Sized>(
+        &mut self,
+        key: &'static str,
+        value: &T,
+    ) -> Result<(), Self::Error>
+    where
+        T: Serialize,
+    {
+        value.serialize(&mut *self)
+    }
+
+    fn end(self) -> Result<Self::Ok, Self::Error> {
+        dbg!();
+        Ok(())
+    }
+}
+
+impl<'a> SerializeStructVariant for FieldSerializer {
     type Ok = ();
     type Error = FgbFileError;
 

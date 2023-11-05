@@ -1,5 +1,4 @@
-mod err;
-pub mod ser;
+pub mod ser; // tmp
 
 use std::{
     borrow::Cow,
@@ -14,9 +13,6 @@ use flatgeobuf::{
     },
     FgbWriter, FgbWriterOptions, GeometryType, GeozeroGeometry,
 };
-
-pub use err::FgbFileError;
-pub use ser::feat::FeatureSerializer; // tmp
 
 /// Output feature
 pub trait ToFgb<const N: usize> {

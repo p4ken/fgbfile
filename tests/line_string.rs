@@ -1,4 +1,4 @@
-use fgbfile::FeatureSerializer;
+use fgbfile::ser::FeatureSerializer;
 use geo_types::LineString;
 use serde::Serialize;
 
