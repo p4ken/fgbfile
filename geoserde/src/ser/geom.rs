@@ -9,17 +9,15 @@ use serde::{
 use super::SerializeError;
 
 pub struct GeometrySerializer {
-    geometory_key: &'static str,
-    current_key: &'static str,
+    // sink: T,
+    // stack: Vec<
     // writer: FgbWriter<'static>,
 }
 
 impl GeometrySerializer {
     pub fn new() -> Self {
-        Self {
-            geometory_key: "geometry",
-            current_key: "",
-        }
+        let _ = geozero::ProcessorSink;
+        Self {}
     }
 }
 
@@ -307,7 +305,6 @@ impl<'a> SerializeStruct for &mut GeometrySerializer {
         T: Serialize,
     {
         dbg!(key);
-        self.current_key = key;
         value.serialize(&mut **self)
     }
 
@@ -334,5 +331,19 @@ impl<'a> SerializeStructVariant for &mut GeometrySerializer {
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
         todo!()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use geo_types::LineString;
+
+    use super::*;
+
+    #[test]
+    fn line_string_test() {
+        let geom = LineString::from(vec![(1.0, 2.0)]);
+        let mut sut = GeometrySerializer::new();
+        geom.serialize(&mut sut).unwrap();
     }
 }

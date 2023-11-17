@@ -1,5 +1,5 @@
-use fgbfile::ser::FeatureSerializer;
 use geo_types::LineString;
+use geoserde::ser::FeatureSerializer;
 use serde::Serialize;
 
 #[test]

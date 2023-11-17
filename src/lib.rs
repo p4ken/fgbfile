@@ -1,5 +1,3 @@
-pub mod ser; // tmp
-
 use std::{
     borrow::Cow,
     fs::File,
