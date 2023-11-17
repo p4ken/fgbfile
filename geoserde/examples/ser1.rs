@@ -1,7 +1,7 @@
-use fgbfile::ser::FeatureSerializer;
 use geo_types::{
     Coord, Geometry, GeometryCollection, LineString, MultiLineString, MultiPoint, Point, Polygon,
 };
+use geoserde::ser::FeatureSerializer;
 use serde::Serialize;
 
 fn main() {

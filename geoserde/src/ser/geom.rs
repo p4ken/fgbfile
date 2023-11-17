@@ -8,16 +8,20 @@ use serde::{
 
 use super::SerializeError;
 
+enum Frame {}
+
 pub struct GeometrySerializer {
     // sink: T,
-    // stack: Vec<
+    /// Geometryなら必要だがそれ以外なら要らない
+    /// Geometryなら直接geozeroを呼べる
+    stack: Vec<Frame>,
     // writer: FgbWriter<'static>,
 }
 
 impl GeometrySerializer {
     pub fn new() -> Self {
         let _ = geozero::ProcessorSink;
-        Self {}
+        Self { stack: vec![] }
     }
 }
 
