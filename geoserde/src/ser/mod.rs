@@ -2,6 +2,7 @@ mod err;
 mod feat;
 mod field;
 mod geom;
+mod layer;
 mod prop;
 
 use err::SerializeError;
