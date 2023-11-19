@@ -11,8 +11,7 @@ use super::{GeometrySerializer, GeometrySink, PropertySerializer, PropertySink, 
 pub struct FeatureSerializer<'a, S> {
     // geometory_key: &'static str,
     current_key: &'static str,
-    geom: GeometrySerializer<'a, S>,
-    prop: PropertySerializer<'a, S>,
+    sink: &'a S,
 }
 
 impl<'a, S: GeometrySink + PropertySink> FeatureSerializer<'a, S> {
@@ -20,8 +19,9 @@ impl<'a, S: GeometrySink + PropertySink> FeatureSerializer<'a, S> {
         Self {
             // geometory_key: "geometry",
             current_key: "",
-            geom: GeometrySerializer::new(sink),
-            prop: PropertySerializer::new(sink),
+            sink,
+            // geom: GeometrySerializer::new(sink),
+            // prop: PropertySerializer::new(sink),
         }
     }
 }
