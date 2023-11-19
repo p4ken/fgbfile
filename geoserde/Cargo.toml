@@ -3,7 +3,17 @@ name = "geoserde"
 version = "0.1.0"
 edition = "2021"
 
+[features]
+geozero = ["dep:geozero"]
+# fgb = ["dep:flatgeobuf"]
+default = ["geozero"]
+
 [dependencies]
+geo-types = { version = "0.7.11" }
+serde = { version = "1.0.188" }
+# flatgeobuf = { version = "4.0.x", optional = true }
+geozero = { version = "0.11.0", optional = true }
+
+[dev-dependencies]
 geo-types = { version = "0.7.11", features = ["serde"] }
 serde = { version = "1.0.188", features = ["derive"] }
-geozero = "0.11.0"

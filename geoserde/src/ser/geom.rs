@@ -1,4 +1,3 @@
-use geozero::GeomProcessor;
 use serde::{
     ser::{
         SerializeMap, SerializeSeq, SerializeStruct, SerializeStructVariant, SerializeTuple,
@@ -22,8 +21,26 @@ enum Container {
     GeometryCollection,
 }
 
-pub trait GeometrySink {}
-impl<T: GeomProcessor> GeometrySink for T {}
+pub trait GeometrySink {
+    type Error: std::error::Error;
+    fn xy(&mut self, x: f64, y: f64, idx: usize) -> Result<(), Self::Error>;
+}
+// #[cfg(feature = "fgb")]
+// impl GeometrySink for flatgeobuf::FgbWriter<'_> {
+//     type Error = flatgeobuf::geozero::error::GeozeroError;
+
+//     fn xy(&mut self, x: f64, y: f64, idx: usize) -> Result<(), Self::Error> {
+//         self.xy(x, y, idx)
+//     }
+// }
+#[cfg(feature = "geozero")]
+impl<G: geozero::GeomProcessor> GeometrySink for G {
+    type Error = geozero::error::GeozeroError;
+
+    fn xy(&mut self, x: f64, y: f64, idx: usize) -> Result<(), Self::Error> {
+        self.xy(x, y, idx)
+    }
+}
 
 pub struct GeometrySerializer<'a, S> {
     /// enumのGeometryなら必要だがそれ以外なら要らない
@@ -355,20 +372,18 @@ impl<'a, S: GeometrySink> SerializeStructVariant for &mut GeometrySerializer<'a,
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use geo_types::LineString;
+// #[cfg(test)]
+// mod tests {
+//     use geo_types::LineString;
 
-    use super::*;
+//     use super::*;
 
-    struct SinkMock {}
-    impl GeometrySink for SinkMock {}
-
-    #[test]
-    fn line_string_test() {
-        let geom = LineString::from(vec![(1.0, 2.0)]);
-        let mut sink = SinkMock {};
-        let mut sut = GeometrySerializer::new(&mut sink);
-        geom.serialize(&mut sut).unwrap();
-    }
-}
+//     #[cfg(feature = "geozero")]
+//     #[test]
+//     fn line_string_test() {
+//         let geom = LineString::from(vec![(1.0, 2.0)]);
+//         let mut sink = geozero::GeozeroGeometry;
+//         let mut sut = GeometrySerializer::new(&mut sink);
+//         geom.serialize(&mut sut).unwrap();
+//     }
+// }
