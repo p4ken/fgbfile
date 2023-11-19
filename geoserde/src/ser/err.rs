@@ -7,6 +7,7 @@ pub enum SerializeError {
     Unimplemented,
     DataSouceCaused(String),
     MissingGeometry,
+    NotAGeometry(&'static str),
 }
 
 impl ser::Error for SerializeError {
@@ -24,6 +25,7 @@ impl Display for SerializeError {
             Self::Unimplemented => f.write_str("not implemented"),
             Self::DataSouceCaused(msg) => f.write_str(&msg),
             Self::MissingGeometry => f.write_str("geometry field is missing"),
+            Self::NotAGeometry(name) => write!(f, "field {} is not a geometry", name),
         }
     }
 }

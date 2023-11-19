@@ -23,7 +23,7 @@ enum Container {
 
 pub trait GeometrySink {
     type Error: std::error::Error;
-    fn xy(&mut self, x: f64, y: f64, idx: usize) -> Result<(), Self::Error>;
+    fn xy(&mut self, x: f64, y: f64, index: usize) -> Result<(), Self::Error>;
 }
 // #[cfg(feature = "fgb")]
 // impl GeometrySink for flatgeobuf::FgbWriter<'_> {
@@ -37,24 +37,35 @@ pub trait GeometrySink {
 impl<G: geozero::GeomProcessor> GeometrySink for G {
     type Error = geozero::error::GeozeroError;
 
-    fn xy(&mut self, x: f64, y: f64, idx: usize) -> Result<(), Self::Error> {
-        self.xy(x, y, idx)
+    fn xy(&mut self, x: f64, y: f64, index: usize) -> Result<(), Self::Error> {
+        self.xy(x, y, index)
     }
 }
+// impl<G: GeometrySink> GeometrySink for &mut G {
+//     type Error = G::Error;
+
+//     fn xy(&mut self, x: f64, y: f64, index: usize) -> Result<(), Self::Error> {
+//         self.xy(x, y, index)
+//     }
+// }
 
 pub struct GeometrySerializer<'a, S> {
     /// enumのGeometryなら必要だがそれ以外なら要らない
     /// enumのGeometryなら直接geozeroを呼べる
     /// May have to cache geometry type.
     stack: Vec<Container>,
+    x: Option<f64>,
+    i_coord: usize,
 
-    sink: &'a S,
+    sink: &'a mut S,
 }
 
 impl<'a, S: GeometrySink> GeometrySerializer<'a, S> {
-    pub fn new(sink: &'a S) -> Self {
+    pub fn new(sink: &'a mut S) -> Self {
         Self {
             stack: vec![],
+            x: None,
+            i_coord: 0,
             sink,
         }
     }
@@ -118,6 +129,9 @@ impl<'a, S: GeometrySink> Serializer for &mut GeometrySerializer<'a, S> {
 
     fn serialize_f64(self, v: f64) -> Result<Self::Ok, Self::Error> {
         dbg!(v);
+        if let Some(x) = self.x {
+            self.sink.xy(x, v, self.i_coord);
+        }
         Ok(())
     }
 
@@ -169,7 +183,7 @@ impl<'a, S: GeometrySink> Serializer for &mut GeometrySerializer<'a, S> {
     where
         T: Serialize,
     {
-        // TODO: name to enum
+        // TODO: convert name to enum
         dbg!(name);
         value.serialize(&mut *self)
     }
@@ -226,8 +240,8 @@ impl<'a, S: GeometrySink> Serializer for &mut GeometrySerializer<'a, S> {
         name: &'static str,
         len: usize,
     ) -> Result<Self::SerializeStruct, Self::Error> {
-        dbg!(name); // Layer1
-        dbg!(len); // 2
+        dbg!(name);
+        dbg!(len);
         Ok(self)
     }
 

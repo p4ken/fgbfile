@@ -11,7 +11,9 @@ use super::{GeometrySerializer, GeometrySink, PropertySerializer, PropertySink, 
 pub struct FeatureSerializer<'a, S> {
     // geometory_key: &'static str,
     current_key: &'static str,
-    sink: &'a S,
+    sink: &'a mut S,
+    // geom: GeometrySerializer<'a, S>,
+    // prop: PropertySerializer<'a, S>,
     has_geom: bool,
 }
 
@@ -314,7 +316,7 @@ impl<'a, S: GeometrySink + PropertySink> SerializeStruct for &mut FeatureSeriali
 
         if !self.has_geom {
             // try to serialize as a property
-            // let mut prop = PropertySerializer::new(self.sink);
+            let mut _prop = PropertySerializer::new(self.sink);
             // value.serialize(&mut prop).is_ok();
         }
 
