@@ -6,6 +6,7 @@ use serde::ser;
 pub enum SerializeError {
     Unimplemented,
     DataSouceCaused(String),
+    MissingGeometry,
 }
 
 impl ser::Error for SerializeError {
@@ -22,6 +23,7 @@ impl Display for SerializeError {
         match self {
             Self::Unimplemented => f.write_str("not implemented"),
             Self::DataSouceCaused(msg) => f.write_str(&msg),
+            Self::MissingGeometry => f.write_str("geometry field is missing"),
         }
     }
 }

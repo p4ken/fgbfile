@@ -12,6 +12,7 @@ pub struct FeatureSerializer<'a, S> {
     // geometory_key: &'static str,
     current_key: &'static str,
     sink: &'a S,
+    has_geom: bool,
 }
 
 impl<'a, S: GeometrySink + PropertySink> FeatureSerializer<'a, S> {
@@ -22,6 +23,7 @@ impl<'a, S: GeometrySink + PropertySink> FeatureSerializer<'a, S> {
             sink,
             // geom: GeometrySerializer::new(sink),
             // prop: PropertySerializer::new(sink),
+            has_geom: false,
         }
     }
 }
@@ -192,9 +194,6 @@ impl<'a, S: GeometrySink + PropertySink> Serializer for &mut FeatureSerializer<'
         name: &'static str,
         len: usize,
     ) -> Result<Self::SerializeStruct, Self::Error> {
-        dbg!(name);
-        dbg!(len);
-        // may not able to determine geom or prop at this time.
         Ok(self)
     }
 
@@ -307,12 +306,27 @@ impl<'a, S: GeometrySink + PropertySink> SerializeStruct for &mut FeatureSeriali
     where
         T: Serialize,
     {
+        if !self.has_geom {
+            // try to serialize as a geometry
+            let mut geom = GeometrySerializer::new(self.sink);
+            self.has_geom = value.serialize(&mut geom).is_ok();
+        }
+
+        if !self.has_geom {
+            // try to serialize as a property
+            // let mut prop = PropertySerializer::new(self.sink);
+            // value.serialize(&mut prop).is_ok();
+        }
+
         value.serialize(&mut **self)
     }
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
-        dbg!();
-        Ok(())
+        if self.has_geom {
+            Ok(())
+        } else {
+            Err(SerializeError::MissingGeometry)
+        }
     }
 }
 
