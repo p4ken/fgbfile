@@ -8,15 +8,15 @@ use serde::{
 
 use super::{GeometrySerializer, GeometrySink, PropertySerializer, PropertySink, SerializeError};
 
-pub struct FeatureSerializer<S> {
+pub struct FeatureSerializer<'a, S> {
     // geometory_key: &'static str,
     current_key: &'static str,
-    geom: GeometrySerializer<S>,
-    prop: PropertySerializer<S>,
+    geom: GeometrySerializer<'a, S>,
+    prop: PropertySerializer<'a, S>,
 }
 
-impl<S: GeometrySink + PropertySink> FeatureSerializer<S> {
-    pub fn new(sink: S) -> Self {
+impl<'a, S: GeometrySink + PropertySink> FeatureSerializer<'a, S> {
+    pub fn new(sink: &'a mut S) -> Self {
         Self {
             // geometory_key: "geometry",
             current_key: "",
@@ -26,7 +26,7 @@ impl<S: GeometrySink + PropertySink> FeatureSerializer<S> {
     }
 }
 
-impl<'a, S: GeometrySink + PropertySink> Serializer for &mut FeatureSerializer<S> {
+impl<'a, S: GeometrySink + PropertySink> Serializer for &mut FeatureSerializer<'a, S> {
     type Ok = ();
     type Error = SerializeError;
 
@@ -209,7 +209,7 @@ impl<'a, S: GeometrySink + PropertySink> Serializer for &mut FeatureSerializer<S
     }
 }
 
-impl<'a, S: GeometrySink + PropertySink> SerializeSeq for &mut FeatureSerializer<S> {
+impl<'a, S: GeometrySink + PropertySink> SerializeSeq for &mut FeatureSerializer<'a, S> {
     type Ok = ();
     type Error = SerializeError;
 
@@ -226,7 +226,7 @@ impl<'a, S: GeometrySink + PropertySink> SerializeSeq for &mut FeatureSerializer
     }
 }
 
-impl<'a, S: GeometrySink + PropertySink> SerializeTuple for &mut FeatureSerializer<S> {
+impl<'a, S: GeometrySink + PropertySink> SerializeTuple for &mut FeatureSerializer<'a, S> {
     type Ok = ();
     type Error = SerializeError;
 
@@ -241,7 +241,7 @@ impl<'a, S: GeometrySink + PropertySink> SerializeTuple for &mut FeatureSerializ
         todo!()
     }
 }
-impl<'a, S: GeometrySink + PropertySink> SerializeTupleStruct for &mut FeatureSerializer<S> {
+impl<'a, S: GeometrySink + PropertySink> SerializeTupleStruct for &mut FeatureSerializer<'a, S> {
     type Ok = ();
     type Error = SerializeError;
 
@@ -257,7 +257,7 @@ impl<'a, S: GeometrySink + PropertySink> SerializeTupleStruct for &mut FeatureSe
     }
 }
 
-impl<'a, S: GeometrySink + PropertySink> SerializeTupleVariant for &mut FeatureSerializer<S> {
+impl<'a, S: GeometrySink + PropertySink> SerializeTupleVariant for &mut FeatureSerializer<'a, S> {
     type Ok = ();
     type Error = SerializeError;
 
@@ -272,7 +272,7 @@ impl<'a, S: GeometrySink + PropertySink> SerializeTupleVariant for &mut FeatureS
         todo!()
     }
 }
-impl<'a, S: GeometrySink + PropertySink> SerializeMap for &mut FeatureSerializer<S> {
+impl<'a, S: GeometrySink + PropertySink> SerializeMap for &mut FeatureSerializer<'a, S> {
     type Ok = ();
     type Error = SerializeError;
 
@@ -295,7 +295,7 @@ impl<'a, S: GeometrySink + PropertySink> SerializeMap for &mut FeatureSerializer
     }
 }
 
-impl<'a, S: GeometrySink + PropertySink> SerializeStruct for &mut FeatureSerializer<S> {
+impl<'a, S: GeometrySink + PropertySink> SerializeStruct for &mut FeatureSerializer<'a, S> {
     type Ok = ();
     type Error = SerializeError;
 
@@ -316,7 +316,7 @@ impl<'a, S: GeometrySink + PropertySink> SerializeStruct for &mut FeatureSeriali
     }
 }
 
-impl<'a, S: GeometrySink + PropertySink> SerializeStructVariant for &mut FeatureSerializer<S> {
+impl<'a, S: GeometrySink + PropertySink> SerializeStructVariant for &mut FeatureSerializer<'a, S> {
     type Ok = ();
     type Error = SerializeError;
 

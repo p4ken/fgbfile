@@ -1,9 +1,10 @@
 pub trait PropertySink {}
-pub struct PropertySerializer<T> {
-    sink: T,
+impl<T: geozero::PropertyProcessor> PropertySink for T {}
+pub struct PropertySerializer<'a, T> {
+    sink: &'a T,
 }
-impl<T: PropertySink> PropertySerializer<T> {
-    pub fn new(sink: T) -> Self {
+impl<'a, T: PropertySink> PropertySerializer<'a, T> {
+    pub fn new(sink: &'a mut T) -> Self {
         Self { sink }
     }
 }

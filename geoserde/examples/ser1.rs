@@ -5,7 +5,8 @@ use geoserde::ser::FeatureSerializer;
 use serde::Serialize;
 
 fn main() {
-    let mut ser = FeatureSerializer::new();
+    let mut sink = geozero::ProcessorSink;
+    let mut ser = FeatureSerializer::new(&mut sink);
 
     let point = Point::new(11., 12.);
     let attribute = 1.;

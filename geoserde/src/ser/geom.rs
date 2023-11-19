@@ -25,17 +25,17 @@ enum Container {
 pub trait GeometrySink {}
 impl<T: GeomProcessor> GeometrySink for T {}
 
-pub struct GeometrySerializer<T> {
+pub struct GeometrySerializer<'a, T> {
     /// enumのGeometryなら必要だがそれ以外なら要らない
     /// enumのGeometryなら直接geozeroを呼べる
     /// May have to cache geometry type.
     stack: Vec<Container>,
 
-    sink: T,
+    sink: &'a T,
 }
 
-impl<W: GeometrySink> GeometrySerializer<W> {
-    pub fn new(sink: W) -> Self {
+impl<'a, W: GeometrySink> GeometrySerializer<'a, W> {
+    pub fn new(sink: &'a mut W) -> Self {
         Self {
             stack: vec![],
             sink,
@@ -43,7 +43,7 @@ impl<W: GeometrySink> GeometrySerializer<W> {
     }
 }
 
-impl<'a, W: GeometrySink> Serializer for &mut GeometrySerializer<W> {
+impl<'a, W: GeometrySink> Serializer for &mut GeometrySerializer<'a, W> {
     type Ok = ();
     type Error = SerializeError;
 
@@ -225,7 +225,7 @@ impl<'a, W: GeometrySink> Serializer for &mut GeometrySerializer<W> {
     }
 }
 
-impl<'a, W: GeometrySink> SerializeSeq for &mut GeometrySerializer<W> {
+impl<'a, W: GeometrySink> SerializeSeq for &mut GeometrySerializer<'a, W> {
     type Ok = ();
     type Error = SerializeError;
 
@@ -242,7 +242,7 @@ impl<'a, W: GeometrySink> SerializeSeq for &mut GeometrySerializer<W> {
     }
 }
 
-impl<'a, W: GeometrySink> SerializeTuple for &mut GeometrySerializer<W> {
+impl<'a, W: GeometrySink> SerializeTuple for &mut GeometrySerializer<'a, W> {
     type Ok = ();
     type Error = SerializeError;
 
@@ -258,7 +258,7 @@ impl<'a, W: GeometrySink> SerializeTuple for &mut GeometrySerializer<W> {
     }
 }
 
-impl<'a, W: GeometrySink> SerializeTupleStruct for &mut GeometrySerializer<W> {
+impl<'a, W: GeometrySink> SerializeTupleStruct for &mut GeometrySerializer<'a, W> {
     type Ok = ();
     type Error = SerializeError;
 
@@ -274,7 +274,7 @@ impl<'a, W: GeometrySink> SerializeTupleStruct for &mut GeometrySerializer<W> {
     }
 }
 
-impl<'a, W: GeometrySink> SerializeTupleVariant for &mut GeometrySerializer<W> {
+impl<'a, W: GeometrySink> SerializeTupleVariant for &mut GeometrySerializer<'a, W> {
     type Ok = ();
     type Error = SerializeError;
 
@@ -290,7 +290,7 @@ impl<'a, W: GeometrySink> SerializeTupleVariant for &mut GeometrySerializer<W> {
     }
 }
 
-impl<'a, W: GeometrySink> SerializeMap for &mut GeometrySerializer<W> {
+impl<'a, W: GeometrySink> SerializeMap for &mut GeometrySerializer<'a, W> {
     type Ok = ();
     type Error = SerializeError;
 
@@ -313,7 +313,7 @@ impl<'a, W: GeometrySink> SerializeMap for &mut GeometrySerializer<W> {
     }
 }
 
-impl<'a, W: GeometrySink> SerializeStruct for &mut GeometrySerializer<W> {
+impl<'a, W: GeometrySink> SerializeStruct for &mut GeometrySerializer<'a, W> {
     type Ok = ();
     type Error = SerializeError;
 
@@ -335,7 +335,7 @@ impl<'a, W: GeometrySink> SerializeStruct for &mut GeometrySerializer<W> {
     }
 }
 
-impl<'a, W: GeometrySink> SerializeStructVariant for &mut GeometrySerializer<W> {
+impl<'a, W: GeometrySink> SerializeStructVariant for &mut GeometrySerializer<'a, W> {
     type Ok = ();
     type Error = SerializeError;
 
@@ -362,7 +362,7 @@ mod tests {
     use super::*;
 
     struct SinkMock {}
-    impl GeometrySink for &mut SinkMock {}
+    impl GeometrySink for SinkMock {}
 
     #[test]
     fn line_string_test() {
