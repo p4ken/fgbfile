@@ -79,8 +79,6 @@ impl<G: geozero::GeomProcessor> GeometrySink for G {
 }
 
 pub struct GeometrySerializer<'a, S> {
-    /// enumのGeometryなら必要だがそれ以外なら要らない
-    /// enumのGeometryなら直接geozeroを呼べる
     /// May have to cache geometry type.
     stack: Vec<Container>,
     x: Option<f64>,
@@ -156,7 +154,12 @@ impl<S: GeometrySink> Serializer for &mut GeometrySerializer<'_, S> {
     fn serialize_f64(self, v: f64) -> Result<Self::Ok, Self::Error> {
         dbg!(v);
         match self.x {
-            Some(x) => self.sink.xy(x, v, self.coord_index)?,
+            Some(x) => {
+                dbg!(self.coord_index);
+                self.sink.xy(x, v, self.coord_index)?;
+                self.x = None;
+                self.coord_index += 1;
+            }
             None => self.x = Some(v),
         }
         Ok(())
@@ -307,7 +310,8 @@ impl<'a, S: GeometrySink> SerializeSeq for &mut GeometrySerializer<'a, S> {
         match self.stack.pop() {
             Some(Container::LineString) => {
                 self.sink.linestring_end(true, self.line_index)?;
-                self.line_index += 1
+                self.coord_index = 0;
+                self.line_index += 1;
             }
             Some(_) => todo!(),
             None => (),
