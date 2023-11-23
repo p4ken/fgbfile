@@ -9,22 +9,16 @@ use serde::{
 use super::{GeometrySerializer, GeometrySink, PropertySerializer, PropertySink, SerializeError};
 
 pub struct FeatureSerializer<'a, S> {
-    // geometory_key: &'static str,
     current_key: &'static str,
     sink: &'a mut S,
-    // geom: GeometrySerializer<'a, S>,
-    // prop: PropertySerializer<'a, S>,
     has_geom: bool,
 }
 
 impl<'a, S: GeometrySink + PropertySink> FeatureSerializer<'a, S> {
     pub fn new(sink: &'a mut S) -> Self {
         Self {
-            // geometory_key: "geometry",
             current_key: "",
             sink,
-            // geom: GeometrySerializer::new(sink),
-            // prop: PropertySerializer::new(sink),
             has_geom: false,
         }
     }
@@ -83,9 +77,7 @@ impl<'a, S: GeometrySink + PropertySink> Serializer for &mut FeatureSerializer<'
     }
 
     fn serialize_f64(self, v: f64) -> Result<Self::Ok, Self::Error> {
-        // 形状と属性は別クラスにしたい（どちらもこの関数になってしまう）
-        dbg!(v); // ここでやっと「LineStringだ」と分かる
-        Ok(())
+        todo!()
     }
 
     fn serialize_char(self, v: char) -> Result<Self::Ok, Self::Error> {
@@ -136,9 +128,7 @@ impl<'a, S: GeometrySink + PropertySink> Serializer for &mut FeatureSerializer<'
     where
         T: Serialize,
     {
-        // LineStringよりもMultiPointの方が1回多く呼ばれる
-        dbg!(name);
-        value.serialize(&mut *self)
+        todo!()
     }
 
     fn serialize_newtype_variant<T: ?Sized>(
@@ -151,22 +141,15 @@ impl<'a, S: GeometrySink + PropertySink> Serializer for &mut FeatureSerializer<'
     where
         T: Serialize,
     {
-        dbg!(name);
-        dbg!(variant_index);
-        dbg!(variant);
-        value.serialize(self)
+        todo!()
     }
 
     fn serialize_seq(self, len: Option<usize>) -> Result<Self::SerializeSeq, Self::Error> {
-        dbg!(len);
-
-        // PropertySerializerを返したい
-        Ok(self)
+        todo!()
     }
 
     fn serialize_tuple(self, len: usize) -> Result<Self::SerializeTuple, Self::Error> {
-        dbg!(len);
-        Ok(self)
+        todo!()
     }
 
     fn serialize_tuple_struct(
@@ -313,11 +296,13 @@ impl<'a, S: GeometrySink + PropertySink> SerializeStruct for &mut FeatureSeriali
         if !self.has_geom {
             // try to serialize as a geometry
             let mut geom = GeometrySerializer::new(self.sink);
-            self.has_geom = value.serialize(&mut geom).is_ok();
-        }
 
-        if self.has_geom {
-            return Ok(());
+            // FIXME: error handling
+            self.has_geom = value.serialize(&mut geom).is_ok();
+            if self.has_geom {
+                // the first geometry field of the feature struct
+                return Ok(());
+            }
         }
 
         // serialize as a property
