@@ -1,4 +1,4 @@
-use geo_types::LineString;
+use geo_types::LineString as LS;
 use serde::Serialize;
 
 #[cfg(feature = "geozero")]
@@ -30,7 +30,7 @@ fn feature_test() -> anyhow::Result<()> {
     Ok(())
 }
 
-fn my_geometry() -> LineString {
+fn my_geometry() -> LS {
     vec![(139.691667, 35.689722), (139.7454329, 35.6585805)].into()
 }
 fn my_feature() -> MyFeature {
@@ -41,6 +41,6 @@ fn my_feature() -> MyFeature {
 }
 #[derive(Serialize)]
 struct MyFeature {
-    geometry: LineString,
+    geometry: LS,
     attribute: f64,
 }
