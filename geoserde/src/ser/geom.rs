@@ -433,19 +433,3 @@ impl<'a, S: GeometrySink> SerializeStructVariant for &mut GeometrySerializer<'a,
         todo!()
     }
 }
-
-// #[cfg(test)]
-// mod tests {
-//     use geo_types::LineString;
-
-//     use super::*;
-
-//     #[cfg(feature = "geozero")]
-//     #[test]
-//     fn line_string_test() {
-//         let geom = LineString::from(vec![(1.0, 2.0)]);
-//         let mut sink = geozero::GeozeroGeometry;
-//         let mut sut = GeometrySerializer::new(&mut sink);
-//         geom.serialize(&mut sut).unwrap();
-//     }
-// }

@@ -308,19 +308,21 @@ impl<'a, S: GeometrySink + PropertySink> SerializeStruct for &mut FeatureSeriali
     where
         T: Serialize,
     {
+        self.current_key = key;
+
         if !self.has_geom {
             // try to serialize as a geometry
             let mut geom = GeometrySerializer::new(self.sink);
             self.has_geom = value.serialize(&mut geom).is_ok();
         }
 
-        if !self.has_geom {
-            // try to serialize as a property
-            let mut _prop = PropertySerializer::new(self.sink);
-            // value.serialize(&mut prop).is_ok();
+        if self.has_geom {
+            return Ok(());
         }
 
-        Ok(())
+        // serialize as a property
+        let mut prop = PropertySerializer::new(self.sink);
+        value.serialize(&mut prop)
     }
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
