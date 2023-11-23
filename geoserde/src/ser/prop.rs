@@ -1,3 +1,5 @@
+// pub trait PropertySink: geozero::GeomProcessor {}
+// impl<G: geozero::GeomProcessor> PropertySink for G {}
 pub trait PropertySink {
     type Error: std::error::Error;
 }

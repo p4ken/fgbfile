@@ -6,10 +6,17 @@ use serde::ser;
 pub enum SerializeError {
     Unimplemented,
     DataSouceCaused(String),
-    MissingGeometry,
-    NotAGeometry(&'static str),
+    MissingGeometryField,
+    NotAGeometryField(&'static str),
+    // #[cfg(feature = "geozero")]
+    GeozeroError(geozero::error::GeozeroError),
 }
-
+// #[cfg(feature = "geozero")]
+impl From<geozero::error::GeozeroError> for SerializeError {
+    fn from(value: geozero::error::GeozeroError) -> Self {
+        Self::GeozeroError(value)
+    }
+}
 impl ser::Error for SerializeError {
     fn custom<T>(msg: T) -> Self
     where
@@ -18,16 +25,17 @@ impl ser::Error for SerializeError {
         Self::DataSouceCaused(msg.to_string())
     }
 }
-
 impl Display for SerializeError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        use SerializeError::*;
         match self {
-            Self::Unimplemented => f.write_str("not implemented"),
-            Self::DataSouceCaused(msg) => f.write_str(&msg),
-            Self::MissingGeometry => f.write_str("geometry field is missing"),
-            Self::NotAGeometry(name) => write!(f, "field {} is not a geometry", name),
+            Unimplemented => f.write_str("not implemented"),
+            DataSouceCaused(msg) => f.write_str(&msg),
+            MissingGeometryField => f.write_str("geometry field is missing"),
+            NotAGeometryField(name) => write!(f, "field {} is not a geometry", name),
+            // #[cfg(feature = "geozero")]
+            GeozeroError(e) => e.fmt(f),
         }
     }
 }
-
 impl Error for SerializeError {}

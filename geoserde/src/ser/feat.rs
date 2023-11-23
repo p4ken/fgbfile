@@ -320,14 +320,14 @@ impl<'a, S: GeometrySink + PropertySink> SerializeStruct for &mut FeatureSeriali
             // value.serialize(&mut prop).is_ok();
         }
 
-        value.serialize(&mut **self)
+        Ok(())
     }
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
         if self.has_geom {
             Ok(())
         } else {
-            Err(SerializeError::MissingGeometry)
+            Err(SerializeError::MissingGeometryField)
         }
     }
 }

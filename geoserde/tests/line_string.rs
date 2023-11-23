@@ -4,7 +4,7 @@ use serde::Serialize;
 
 #[cfg(feature = "geozero")]
 #[test]
-fn serialize_test() {
+fn feature_test() {
     let mut buf = Vec::<u8>::new();
     let mut sink = geozero::wkt::WktWriter::new(&mut buf);
     let mut sut = FeatureSerializer::new(&mut sink);
