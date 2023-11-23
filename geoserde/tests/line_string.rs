@@ -3,40 +3,44 @@ use serde::Serialize;
 
 #[cfg(feature = "geozero")]
 #[test]
-fn geometry_test() {
+fn geometry_test() -> anyhow::Result<()> {
     use geoserde::ser::GeometrySerializer;
 
     let mut buf = Vec::<u8>::new();
     let mut sink = geozero::wkt::WktWriter::new(&mut buf);
     let mut sut = GeometrySerializer::new(&mut sink);
-
-    let line_string = LineString::from(vec![(139.691667, 35.689722), (139.7454329, 35.6585805)]);
-    line_string.serialize(&mut sut).unwrap();
+    my_geometry().serialize(&mut sut)?;
     assert_eq!(
         "LINESTRING(139.691667 35.689722,139.7454329 35.6585805)",
-        String::from_utf8(buf).unwrap()
+        String::from_utf8(buf)?
     );
+    Ok(())
 }
 
 #[cfg(feature = "geozero")]
 #[test]
-fn feature_test() {
+fn feature_test() -> anyhow::Result<()> {
     use geoserde::ser::FeatureSerializer;
 
     let mut buf = Vec::<u8>::new();
     let mut sink = geozero::geojson::GeoJsonWriter::new(&mut buf);
     let mut sut = FeatureSerializer::new(&mut sink);
-
-    let line_string_layer = [LineStringFeature {
-        geometry: vec![(139.691667, 35.689722), (139.7454329, 35.6585805)].into(),
-        attribute: 1.0,
-    }];
-    line_string_layer[0].serialize(&mut sut).unwrap();
-    println!("{}", String::from_utf8(buf).unwrap());
+    my_feature().serialize(&mut sut)?;
+    println!("{}", String::from_utf8(buf)?);
+    Ok(())
 }
 
+fn my_geometry() -> LineString {
+    vec![(139.691667, 35.689722), (139.7454329, 35.6585805)].into()
+}
+fn my_feature() -> MyFeature {
+    MyFeature {
+        geometry: my_geometry(),
+        attribute: 1.0,
+    }
+}
 #[derive(Serialize)]
-struct LineStringFeature {
+struct MyFeature {
     geometry: LineString,
     attribute: f64,
 }

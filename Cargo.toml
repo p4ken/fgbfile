@@ -11,5 +11,5 @@ license = "MIT"
 exclude = [".*"]
 
 [dependencies]
-flatgeobuf = {version = "3.27.0", default-features = false}
+flatgeobuf = { version = "3.27.0", default-features = false }
 geo-types = { version = "0.7.11", features = ["serde"] }
