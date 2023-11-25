@@ -41,6 +41,6 @@ fn my_feature() -> MyFeature {
 }
 #[derive(Serialize)]
 struct MyFeature {
-    geometry: LS,
     attribute: f64,
+    geometry: LS,
 }

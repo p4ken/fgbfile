@@ -15,7 +15,7 @@ pub struct FeatureSerializer<'a, S: FeatureSink> {
     // current_key: &'static str,
     sink: &'a mut S,
     has_geom: bool,
-    geom_error: Option<SerializeError<<S as GeometrySink>::Error>>,
+    // geom_error: Option<SerializeError<<S as GeometrySink>::Error>>,
     prop_index: usize,
 }
 
@@ -25,7 +25,7 @@ impl<'a, S: FeatureSink> FeatureSerializer<'a, S> {
             // current_key: "",
             sink,
             has_geom: false,
-            geom_error: None,
+            // geom_error: None,
             prop_index: 0,
         }
     }
@@ -298,19 +298,13 @@ impl<'a, S: FeatureSink> SerializeStruct for &mut FeatureSerializer<'a, S> {
     where
         T: Serialize,
     {
-        // self.current_key = key;
-
         if !self.has_geom {
             // try to serialize as a geometry
             let mut geom = GeometrySerializer::new(self.sink);
-
-            match value.serialize(&mut geom) {
-                Ok(()) => {
-                    // the first geometry field of the feature struct
-                    self.has_geom = true;
-                    return Ok(());
-                }
-                Err(e) => self.geom_error = Some(e),
+            if value.serialize(&mut geom)? {
+                // found the first geometry field
+                self.has_geom = true;
+                return Ok(());
             }
         }
 
