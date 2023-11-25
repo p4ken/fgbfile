@@ -21,15 +21,6 @@ enum Container {
     GeometryCollection,
 }
 impl Container {
-    fn from_name(name: &str) -> Option<Self> {
-        use Container::*;
-        let container = match name {
-            "Coord" => Coord,
-            "LineString" => LineString,
-            _ => return None,
-        };
-        Some(container)
-    }
     fn as_str(&self) -> &'static str {
         use Container::*;
         match self {
@@ -239,12 +230,15 @@ impl<S: GeometrySink> Serializer for &mut GeometrySerializer<'_, S> {
         T: Serialize,
     {
         dbg!(name);
-        // FIXME: match insted of from_name
-        let container =
-            Container::from_name(name).ok_or(SerializeError::InvalidGeometryContainer {
-                name,
-                expected: "Point",
-            })?;
+        let container = match name {
+            "LineString" => Container::LineString,
+            name => {
+                return Err(SerializeError::InvalidGeometryContainer {
+                    name,
+                    expected: "LineString",
+                })
+            }
+        };
         self.stack.push(container);
         value.serialize(&mut *self)
     }
@@ -312,12 +306,15 @@ impl<S: GeometrySink> Serializer for &mut GeometrySerializer<'_, S> {
     ) -> Result<Self::SerializeStruct, Self::Error> {
         dbg!(name);
         dbg!(len);
-        // FIXME
-        let container =
-            Container::from_name(name).ok_or(SerializeError::InvalidGeometryContainer {
-                name,
-                expected: "LineString",
-            })?;
+        let container = match name {
+            "Coord" => Container::Coord,
+            name => {
+                return Err(SerializeError::InvalidGeometryContainer {
+                    name,
+                    expected: "Coord",
+                })
+            }
+        };
         self.stack.push(container);
         Ok(self)
     }

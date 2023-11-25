@@ -10,15 +10,7 @@ pub enum SerializeError<E> {
         name: &'static str,
         expected: &'static str,
     },
-    // #[cfg(feature = "geozero")]
-    GeozeroError(E),
     PropertySinkCaused(E),
-}
-// #[cfg(feature = "geozero")]
-impl From<geozero::error::GeozeroError> for SerializeError<geozero::error::GeozeroError> {
-    fn from(value: geozero::error::GeozeroError) -> Self {
-        Self::GeozeroError(value)
-    }
 }
 impl<E: Error> serde::ser::Error for SerializeError<E> {
     fn custom<T>(msg: T) -> Self
@@ -39,8 +31,6 @@ impl<E: Display> Display for SerializeError<E> {
             InvalidGeometryContainer { name, expected } => {
                 write!(f, "expected container type: {}, actual: {}", expected, name)
             }
-            // #[cfg(feature = "geozero")]
-            GeozeroError(e) => e.fmt(f),
             PropertySinkCaused(e) => e.fmt(f),
         }
     }
