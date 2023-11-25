@@ -260,7 +260,10 @@ impl<S: GeometrySink> Serializer for &mut GeometrySerializer<'_, S> {
     }
 
     fn serialize_seq(self, len: Option<usize>) -> Result<Self::SerializeSeq, Self::Error> {
-        let len = len.ok_or(SerializeError::NotAGeometryField(""))?;
+        let len = len.ok_or(SerializeError::InvalidGeometryContainer {
+            name: "?",
+            expected: "Vec",
+        })?;
         dbg!(len);
         match self.stack.last() {
             Some(Container::LineString) => {

@@ -4,8 +4,8 @@ use std::{error::Error, fmt::Display};
 pub enum SerializeError<E> {
     Unimplemented,
     DataSouceCaused(String),
-    MissingGeometryField,
-    NotAGeometryField(&'static str),
+    MalformedFeature,
+    NoGeometryField,
     InvalidGeometryContainer {
         name: &'static str,
         expected: &'static str,
@@ -26,8 +26,8 @@ impl<E: Display> Display for SerializeError<E> {
         match self {
             Unimplemented => f.write_str("not implemented"),
             DataSouceCaused(msg) => f.write_str(&msg),
-            MissingGeometryField => f.write_str("geometry field is missing"),
-            NotAGeometryField(name) => write!(f, "field {} is not a geometry", name),
+            MalformedFeature => f.write_str("feature must be a struct"),
+            NoGeometryField => f.write_str("feature has no geometry field"),
             InvalidGeometryContainer { name, expected } => {
                 write!(f, "expected container type: {}, actual: {}", expected, name)
             }
