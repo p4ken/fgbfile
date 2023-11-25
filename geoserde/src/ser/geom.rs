@@ -44,6 +44,8 @@ impl Container {
 pub trait GeometrySink {
     type Error: std::error::Error;
     fn xy(&mut self, x: f64, y: f64, index: usize) -> Result<(), Self::Error>;
+    // fn point_begin(&mut self, index: usize) -> Result<(), Self::Error>;
+    // fn point_end(&mut self, index: usize) -> Result<(), Self::Error>;
     fn linestring_begin(
         &mut self,
         is_single: bool,
@@ -51,15 +53,21 @@ pub trait GeometrySink {
         index: usize,
     ) -> Result<(), Self::Error>;
     fn linestring_end(&mut self, is_single: bool, index: usize) -> Result<(), Self::Error>;
-    // fn point_begin(&mut self, index: usize) -> Result<(), Self::Error>;
-    // fn point_end(&mut self, index: usize) -> Result<(), Self::Error>;
+    fn geometry_begin(&mut self) -> Result<(), Self::Error>;
+    fn geometry_end(&mut self) -> Result<(), Self::Error>;
 }
 #[cfg(feature = "geozero")]
-impl<G: geozero::GeomProcessor + ?geozero::FeatureProcessor> GeometrySink for G {
+impl<G: geozero::FeatureProcessor> GeometrySink for G {
     type Error = geozero::error::GeozeroError;
     fn xy(&mut self, x: f64, y: f64, index: usize) -> Result<(), Self::Error> {
         self.xy(x, y, index)
     }
+    // fn point_begin(&mut self, index: usize) -> Result<(), Self::Error> {
+    //     self.point_begin(index)
+    // }
+    // fn point_end(&mut self, index: usize) -> Result<(), Self::Error> {
+    //     self.point_end(index)
+    // }
     fn linestring_begin(
         &mut self,
         is_single: bool,
@@ -71,12 +79,14 @@ impl<G: geozero::GeomProcessor + ?geozero::FeatureProcessor> GeometrySink for G 
     fn linestring_end(&mut self, is_single: bool, index: usize) -> Result<(), Self::Error> {
         self.linestring_end(is_single, index)
     }
-    // fn point_begin(&mut self, index: usize) -> Result<(), Self::Error> {
-    //     self.point_begin(index)
-    // }
-    // fn point_end(&mut self, index: usize) -> Result<(), Self::Error> {
-    //     self.point_end(index)
-    // }
+
+    fn geometry_begin(&mut self) -> Result<(), Self::Error> {
+        self.geometry_begin()
+    }
+
+    fn geometry_end(&mut self) -> Result<(), Self::Error> {
+        self.geometry_end()
+    }
 }
 
 pub struct GeometrySerializer<'a, S> {

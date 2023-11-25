@@ -310,8 +310,7 @@ impl<'a, S: FeatureSink> SerializeStruct for &mut FeatureSerializer<'a, S> {
 
         // serialize as a property
         let mut prop = PropertySerializer::new(self.prop_index, key, self.sink);
-        value.serialize(&mut prop)?;
-        self.prop_index += 1;
+        self.prop_index = value.serialize(&mut prop)?;
         Ok(())
     }
 
