@@ -321,6 +321,7 @@ impl<'a, S: FeatureSink> SerializeStruct for &mut FeatureSerializer<'a, S> {
                 Err(e) if key == self.geom_key => return Err(e),
 
                 // ignore the error
+                // FIXME some junk has been wrote
                 Err(_) => (),
             }
         }
