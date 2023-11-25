@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use serde::{
     ser::{
         SerializeMap, SerializeSeq, SerializeStruct, SerializeStructVariant, SerializeTuple,
@@ -22,59 +20,55 @@ enum Container {
     Geometry,
     GeometryCollection,
 }
-impl FromStr for Container {
-    type Err = SerializeError;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
+impl Container {
+    fn from_name(name: &str) -> Option<Self> {
         use Container::*;
-        let container = match s {
+        let container = match name {
             "Coord" => Coord,
             "LineString" => LineString,
-            _ => return Err(SerializeError::NotAGeometryField("")),
+            _ => return None,
         };
-        Ok(container)
+        Some(container)
     }
 }
 
 // pub trait GeometrySink: geozero::GeomProcessor {}
 // impl<G: geozero::GeomProcessor> GeometrySink for G {}
 pub trait GeometrySink {
-    fn xy(&mut self, x: f64, y: f64, index: usize) -> Result<(), SerializeError>;
+    type Error: std::error::Error;
+    fn xy(&mut self, x: f64, y: f64, index: usize) -> Result<(), Self::Error>;
     fn linestring_begin(
         &mut self,
         is_single: bool,
         len: usize,
         index: usize,
-    ) -> Result<(), SerializeError>;
-    fn linestring_end(&mut self, is_single: bool, index: usize) -> Result<(), SerializeError>;
-    // fn point_begin(&mut self, index: usize) -> Result<(), SerializeError>;
-    // fn point_end(&mut self, index: usize) -> Result<(), SerializeError>;
+    ) -> Result<(), Self::Error>;
+    fn linestring_end(&mut self, is_single: bool, index: usize) -> Result<(), Self::Error>;
+    // fn point_begin(&mut self, index: usize) -> Result<(), Self::Error>;
+    // fn point_end(&mut self, index: usize) -> Result<(), Self::Error>;
 }
 #[cfg(feature = "geozero")]
 impl<G: geozero::GeomProcessor> GeometrySink for G {
-    fn xy(&mut self, x: f64, y: f64, index: usize) -> Result<(), SerializeError> {
-        self.xy(x, y, index)?;
-        Ok(())
+    type Error = geozero::error::GeozeroError;
+    fn xy(&mut self, x: f64, y: f64, index: usize) -> Result<(), Self::Error> {
+        self.xy(x, y, index)
     }
     fn linestring_begin(
         &mut self,
         is_single: bool,
         len: usize,
         index: usize,
-    ) -> Result<(), SerializeError> {
-        self.linestring_begin(is_single, len, index)?;
-        Ok(())
+    ) -> Result<(), Self::Error> {
+        self.linestring_begin(is_single, len, index)
     }
-    fn linestring_end(&mut self, is_single: bool, index: usize) -> Result<(), SerializeError> {
-        self.linestring_end(is_single, index)?;
-        Ok(())
+    fn linestring_end(&mut self, is_single: bool, index: usize) -> Result<(), Self::Error> {
+        self.linestring_end(is_single, index)
     }
-    // fn point_begin(&mut self, index: usize) -> Result<(), SerializeError> {
-    //     self.point_begin(index)?;
-    //     Ok(())
+    // fn point_begin(&mut self, index: usize) -> Result<(), Self::Error> {
+    //     self.point_begin(index)
     // }
-    // fn point_end(&mut self, index: usize) -> Result<(), SerializeError> {
-    //     self.point_end(index)?;
-    //     Ok(())
+    // fn point_end(&mut self, index: usize) -> Result<(), Self::Error> {
+    //     self.point_end(index)
     // }
 }
 
@@ -92,9 +86,9 @@ impl<'a, S> GeometrySerializer<'a, S> {
     pub fn new(sink: &'a mut S) -> Self {
         Self {
             stack: vec![],
-            line_index: 0,
-            coord_index: 0,
             x: None,
+            coord_index: 0,
+            line_index: 0,
             sink,
         }
     }
@@ -102,7 +96,7 @@ impl<'a, S> GeometrySerializer<'a, S> {
 
 impl<S: GeometrySink> Serializer for &mut GeometrySerializer<'_, S> {
     type Ok = ();
-    type Error = SerializeError;
+    type Error = SerializeError<S::Error>;
     type SerializeSeq = Self;
     type SerializeTuple = Self;
     type SerializeTupleStruct = Self;
@@ -156,7 +150,9 @@ impl<S: GeometrySink> Serializer for &mut GeometrySerializer<'_, S> {
         match self.x {
             Some(x) => {
                 dbg!(self.coord_index);
-                self.sink.xy(x, v, self.coord_index)?;
+                self.sink
+                    .xy(x, v, self.coord_index)
+                    .map_err(SerializeError::PropertySinkCaused)?;
                 self.x = None;
                 self.coord_index += 1;
             }
@@ -214,7 +210,9 @@ impl<S: GeometrySink> Serializer for &mut GeometrySerializer<'_, S> {
         T: Serialize,
     {
         dbg!(name);
-        self.stack.push(name.parse()?);
+        // FIXME: parse error is critical only if something already wrote to sink.
+        let container = Container::from_name(name).ok_or(SerializeError::InvalidTypeName(name))?;
+        self.stack.push(container);
         value.serialize(&mut *self)
     }
 
@@ -239,7 +237,9 @@ impl<S: GeometrySink> Serializer for &mut GeometrySerializer<'_, S> {
         dbg!(len);
         match self.stack.last() {
             Some(Container::LineString) => {
-                self.sink.linestring_begin(true, len, self.line_index)?
+                self.sink
+                    .linestring_begin(true, len, self.line_index)
+                    .map_err(SerializeError::PropertySinkCaused)?;
             }
             _ => (), // todo
         }
@@ -279,7 +279,8 @@ impl<S: GeometrySink> Serializer for &mut GeometrySerializer<'_, S> {
     ) -> Result<Self::SerializeStruct, Self::Error> {
         dbg!(name);
         dbg!(len);
-        self.stack.push(name.parse()?);
+        let container = Container::from_name(name).ok_or(SerializeError::InvalidTypeName(name))?;
+        self.stack.push(container);
         Ok(self)
     }
 
@@ -294,9 +295,9 @@ impl<S: GeometrySink> Serializer for &mut GeometrySerializer<'_, S> {
     }
 }
 
-impl<'a, S: GeometrySink> SerializeSeq for &mut GeometrySerializer<'a, S> {
+impl<S: GeometrySink> SerializeSeq for &mut GeometrySerializer<'_, S> {
     type Ok = ();
-    type Error = SerializeError;
+    type Error = SerializeError<S::Error>;
 
     fn serialize_element<T: ?Sized>(&mut self, value: &T) -> Result<(), Self::Error>
     where
@@ -309,7 +310,9 @@ impl<'a, S: GeometrySink> SerializeSeq for &mut GeometrySerializer<'a, S> {
         dbg!();
         match self.stack.pop() {
             Some(Container::LineString) => {
-                self.sink.linestring_end(true, self.line_index)?;
+                self.sink
+                    .linestring_end(true, self.line_index)
+                    .map_err(SerializeError::PropertySinkCaused)?;
                 self.coord_index = 0;
                 self.line_index += 1;
             }
@@ -320,9 +323,9 @@ impl<'a, S: GeometrySink> SerializeSeq for &mut GeometrySerializer<'a, S> {
     }
 }
 
-impl<'a, S: GeometrySink> SerializeTuple for &mut GeometrySerializer<'a, S> {
+impl<S: GeometrySink> SerializeTuple for &mut GeometrySerializer<'_, S> {
     type Ok = ();
-    type Error = SerializeError;
+    type Error = SerializeError<S::Error>;
 
     fn serialize_element<T: ?Sized>(&mut self, value: &T) -> Result<(), Self::Error>
     where
@@ -336,9 +339,9 @@ impl<'a, S: GeometrySink> SerializeTuple for &mut GeometrySerializer<'a, S> {
     }
 }
 
-impl<'a, S: GeometrySink> SerializeTupleStruct for &mut GeometrySerializer<'a, S> {
+impl<S: GeometrySink> SerializeTupleStruct for &mut GeometrySerializer<'_, S> {
     type Ok = ();
-    type Error = SerializeError;
+    type Error = SerializeError<S::Error>;
 
     fn serialize_field<T: ?Sized>(&mut self, value: &T) -> Result<(), Self::Error>
     where
@@ -352,9 +355,9 @@ impl<'a, S: GeometrySink> SerializeTupleStruct for &mut GeometrySerializer<'a, S
     }
 }
 
-impl<'a, S: GeometrySink> SerializeTupleVariant for &mut GeometrySerializer<'a, S> {
+impl<S: GeometrySink> SerializeTupleVariant for &mut GeometrySerializer<'_, S> {
     type Ok = ();
-    type Error = SerializeError;
+    type Error = SerializeError<S::Error>;
 
     fn serialize_field<T: ?Sized>(&mut self, value: &T) -> Result<(), Self::Error>
     where
@@ -368,9 +371,9 @@ impl<'a, S: GeometrySink> SerializeTupleVariant for &mut GeometrySerializer<'a, 
     }
 }
 
-impl<'a, S: GeometrySink> SerializeMap for &mut GeometrySerializer<'a, S> {
+impl<S: GeometrySink> SerializeMap for &mut GeometrySerializer<'_, S> {
     type Ok = ();
-    type Error = SerializeError;
+    type Error = SerializeError<S::Error>;
 
     fn serialize_key<T: ?Sized>(&mut self, key: &T) -> Result<(), Self::Error>
     where
@@ -391,9 +394,9 @@ impl<'a, S: GeometrySink> SerializeMap for &mut GeometrySerializer<'a, S> {
     }
 }
 
-impl<'a, S: GeometrySink> SerializeStruct for &mut GeometrySerializer<'a, S> {
+impl<S: GeometrySink> SerializeStruct for &mut GeometrySerializer<'_, S> {
     type Ok = ();
-    type Error = SerializeError;
+    type Error = SerializeError<S::Error>;
 
     fn serialize_field<T: ?Sized>(
         &mut self,
@@ -414,9 +417,9 @@ impl<'a, S: GeometrySink> SerializeStruct for &mut GeometrySerializer<'a, S> {
     }
 }
 
-impl<'a, S: GeometrySink> SerializeStructVariant for &mut GeometrySerializer<'a, S> {
+impl<S: GeometrySink> SerializeStructVariant for &mut GeometrySerializer<'_, S> {
     type Ok = ();
-    type Error = SerializeError;
+    type Error = SerializeError<S::Error>;
 
     fn serialize_field<T: ?Sized>(
         &mut self,

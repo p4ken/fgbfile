@@ -1,23 +1,23 @@
 use std::{error::Error, fmt::Display};
 
-use serde::ser;
-
 #[derive(Debug)]
-pub enum SerializeError {
+pub enum SerializeError<E> {
     Unimplemented,
     DataSouceCaused(String),
     MissingGeometryField,
     NotAGeometryField(&'static str),
+    InvalidTypeName(&'static str),
     // #[cfg(feature = "geozero")]
-    GeozeroError(geozero::error::GeozeroError),
+    GeozeroError(E),
+    PropertySinkCaused(E),
 }
 // #[cfg(feature = "geozero")]
-impl From<geozero::error::GeozeroError> for SerializeError {
+impl From<geozero::error::GeozeroError> for SerializeError<geozero::error::GeozeroError> {
     fn from(value: geozero::error::GeozeroError) -> Self {
         Self::GeozeroError(value)
     }
 }
-impl ser::Error for SerializeError {
+impl<E: Error> serde::ser::Error for SerializeError<E> {
     fn custom<T>(msg: T) -> Self
     where
         T: Display,
@@ -25,7 +25,7 @@ impl ser::Error for SerializeError {
         Self::DataSouceCaused(msg.to_string())
     }
 }
-impl Display for SerializeError {
+impl<E: Display> Display for SerializeError<E> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         use SerializeError::*;
         match self {
@@ -33,9 +33,11 @@ impl Display for SerializeError {
             DataSouceCaused(msg) => f.write_str(&msg),
             MissingGeometryField => f.write_str("geometry field is missing"),
             NotAGeometryField(name) => write!(f, "field {} is not a geometry", name),
+            InvalidTypeName(name) => write!(f, "invalid field name {}", name),
             // #[cfg(feature = "geozero")]
             GeozeroError(e) => e.fmt(f),
+            PropertySinkCaused(e) => e.fmt(f),
         }
     }
 }
-impl Error for SerializeError {}
+impl<E: Error> Error for SerializeError<E> {}

@@ -12,22 +12,29 @@ use super::err::SerializeError;
 // impl<G: geozero::GeomProcessor> PropertySink for G {}
 pub trait PropertySink {
     type Error: std::error::Error;
+    fn f64(&mut self, index: usize, key: &str, value: f64) -> Result<(), Self::Error>;
 }
 #[cfg(feature = "geozero")]
-impl<G: geozero::GeomProcessor> PropertySink for G {
+impl<G: geozero::PropertyProcessor> PropertySink for G {
     type Error = geozero::error::GeozeroError;
+    fn f64(&mut self, index: usize, key: &str, value: f64) -> Result<(), Self::Error> {
+        self.property(index, key, &geozero::ColumnValue::Double(value))?;
+        Ok(())
+    }
 }
 pub struct PropertySerializer<'a, S> {
+    index: usize,
+    key: &'static str,
     sink: &'a mut S,
 }
 impl<'a, S> PropertySerializer<'a, S> {
-    pub fn new(sink: &'a mut S) -> Self {
-        Self { sink }
+    pub fn new(index: usize, key: &'static str, sink: &'a mut S) -> Self {
+        Self { index, key, sink }
     }
 }
-impl<'a, S: PropertySink> Serializer for &mut PropertySerializer<'a, S> {
+impl<S: PropertySink> Serializer for &mut PropertySerializer<'_, S> {
     type Ok = ();
-    type Error = SerializeError;
+    type Error = SerializeError<S::Error>;
     type SerializeSeq = Self;
     type SerializeTuple = Self;
     type SerializeTupleStruct = Self;
@@ -67,7 +74,9 @@ impl<'a, S: PropertySink> Serializer for &mut PropertySerializer<'a, S> {
         todo!()
     }
     fn serialize_f64(self, v: f64) -> Result<Self::Ok, Self::Error> {
-        todo!() // todo
+        self.sink
+            .f64(self.index, self.key, v)
+            .map_err(SerializeError::PropertySinkCaused)
     }
     fn serialize_char(self, v: char) -> Result<Self::Ok, Self::Error> {
         todo!()
@@ -178,9 +187,9 @@ impl<'a, S: PropertySink> Serializer for &mut PropertySerializer<'a, S> {
     }
 }
 
-impl<'a, S: PropertySink> SerializeSeq for &mut PropertySerializer<'a, S> {
+impl<S: PropertySink> SerializeSeq for &mut PropertySerializer<'_, S> {
     type Ok = ();
-    type Error = SerializeError;
+    type Error = SerializeError<S::Error>;
 
     fn serialize_element<T: ?Sized>(&mut self, value: &T) -> Result<(), Self::Error>
     where
@@ -195,9 +204,9 @@ impl<'a, S: PropertySink> SerializeSeq for &mut PropertySerializer<'a, S> {
     }
 }
 
-impl<'a, S: PropertySink> SerializeTuple for &mut PropertySerializer<'a, S> {
+impl<S: PropertySink> SerializeTuple for &mut PropertySerializer<'_, S> {
     type Ok = ();
-    type Error = SerializeError;
+    type Error = SerializeError<S::Error>;
 
     fn serialize_element<T: ?Sized>(&mut self, value: &T) -> Result<(), Self::Error>
     where
@@ -211,9 +220,9 @@ impl<'a, S: PropertySink> SerializeTuple for &mut PropertySerializer<'a, S> {
     }
 }
 
-impl<'a, S: PropertySink> SerializeTupleStruct for &mut PropertySerializer<'a, S> {
+impl<S: PropertySink> SerializeTupleStruct for &mut PropertySerializer<'_, S> {
     type Ok = ();
-    type Error = SerializeError;
+    type Error = SerializeError<S::Error>;
 
     fn serialize_field<T: ?Sized>(&mut self, value: &T) -> Result<(), Self::Error>
     where
@@ -227,9 +236,9 @@ impl<'a, S: PropertySink> SerializeTupleStruct for &mut PropertySerializer<'a, S
     }
 }
 
-impl<'a, S: PropertySink> SerializeTupleVariant for &mut PropertySerializer<'a, S> {
+impl<S: PropertySink> SerializeTupleVariant for &mut PropertySerializer<'_, S> {
     type Ok = ();
-    type Error = SerializeError;
+    type Error = SerializeError<S::Error>;
 
     fn serialize_field<T: ?Sized>(&mut self, value: &T) -> Result<(), Self::Error>
     where
@@ -243,9 +252,9 @@ impl<'a, S: PropertySink> SerializeTupleVariant for &mut PropertySerializer<'a, 
     }
 }
 
-impl<'a, S: PropertySink> SerializeMap for &mut PropertySerializer<'a, S> {
+impl<S: PropertySink> SerializeMap for &mut PropertySerializer<'_, S> {
     type Ok = ();
-    type Error = SerializeError;
+    type Error = SerializeError<S::Error>;
 
     fn serialize_key<T: ?Sized>(&mut self, key: &T) -> Result<(), Self::Error>
     where
@@ -266,9 +275,9 @@ impl<'a, S: PropertySink> SerializeMap for &mut PropertySerializer<'a, S> {
     }
 }
 
-impl<'a, S: PropertySink> SerializeStruct for &mut PropertySerializer<'a, S> {
+impl<S: PropertySink> SerializeStruct for &mut PropertySerializer<'_, S> {
     type Ok = ();
-    type Error = SerializeError;
+    type Error = SerializeError<S::Error>;
 
     fn serialize_field<T: ?Sized>(
         &mut self,
@@ -288,9 +297,9 @@ impl<'a, S: PropertySink> SerializeStruct for &mut PropertySerializer<'a, S> {
     }
 }
 
-impl<'a, S: PropertySink> SerializeStructVariant for &mut PropertySerializer<'a, S> {
+impl<S: PropertySink> SerializeStructVariant for &mut PropertySerializer<'_, S> {
     type Ok = ();
-    type Error = SerializeError;
+    type Error = SerializeError<S::Error>;
 
     fn serialize_field<T: ?Sized>(
         &mut self,
