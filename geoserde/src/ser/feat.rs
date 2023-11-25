@@ -15,6 +15,7 @@ pub struct FeatureSerializer<'a, S: FeatureSink> {
     // current_key: &'static str,
     sink: &'a mut S,
     has_geom: bool,
+    geom_key: &'static str,
     // geom_error: Option<SerializeError<<S as GeometrySink>::Error>>,
     prop_index: usize,
 }
@@ -25,9 +26,14 @@ impl<'a, S: FeatureSink> FeatureSerializer<'a, S> {
             // current_key: "",
             sink,
             has_geom: false,
+            geom_key: "geometry",
             // geom_error: None,
             prop_index: 0,
         }
+    }
+    pub fn geom_field(&mut self, key: &'static str) -> &Self {
+        self.geom_key = key;
+        self
     }
 }
 
@@ -301,10 +307,18 @@ impl<'a, S: FeatureSink> SerializeStruct for &mut FeatureSerializer<'a, S> {
         if !self.has_geom {
             // try to serialize as a geometry
             let mut geom = GeometrySerializer::new(self.sink);
-            if value.serialize(&mut geom)? {
+            match value.serialize(&mut geom) {
                 // found the first geometry field
-                self.has_geom = true;
-                return Ok(());
+                Ok(()) => {
+                    self.has_geom = true;
+                    return Ok(());
+                }
+
+                // the field must be a geometry
+                Err(e) if key == self.geom_key => return Err(e),
+
+                // ignore the error
+                Err(_) => (),
             }
         }
 

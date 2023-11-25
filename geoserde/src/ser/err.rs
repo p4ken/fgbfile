@@ -6,7 +6,10 @@ pub enum SerializeError<E> {
     DataSouceCaused(String),
     MissingGeometryField,
     NotAGeometryField(&'static str),
-    InvalidGeometryContainer(&'static str),
+    InvalidGeometryContainer {
+        name: &'static str,
+        expected: &'static str,
+    },
     // #[cfg(feature = "geozero")]
     GeozeroError(E),
     PropertySinkCaused(E),
@@ -33,7 +36,9 @@ impl<E: Display> Display for SerializeError<E> {
             DataSouceCaused(msg) => f.write_str(&msg),
             MissingGeometryField => f.write_str("geometry field is missing"),
             NotAGeometryField(name) => write!(f, "field {} is not a geometry", name),
-            InvalidGeometryContainer(name) => write!(f, "invalid name {} for a geometry", name),
+            InvalidGeometryContainer { name, expected } => {
+                write!(f, "expected container type: {}, actual: {}", expected, name)
+            }
             // #[cfg(feature = "geozero")]
             GeozeroError(e) => e.fmt(f),
             PropertySinkCaused(e) => e.fmt(f),
