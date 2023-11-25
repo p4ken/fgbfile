@@ -218,11 +218,11 @@ impl<'a, S: FeatureSink> SerializeSeq for &mut FeatureSerializer<'a, S> {
     where
         T: Serialize,
     {
-        Err(SerializeError::Unimplemented)
+        unimplemented!()
     }
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
-        Err(SerializeError::Unimplemented)
+        unimplemented!()
     }
 }
 
@@ -234,11 +234,11 @@ impl<'a, S: FeatureSink> SerializeTuple for &mut FeatureSerializer<'a, S> {
     where
         T: Serialize,
     {
-        Err(SerializeError::Unimplemented)
+        unimplemented!()
     }
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
-        Err(SerializeError::Unimplemented)
+        unimplemented!()
     }
 }
 impl<'a, S: FeatureSink> SerializeTupleStruct for &mut FeatureSerializer<'a, S> {
@@ -249,11 +249,11 @@ impl<'a, S: FeatureSink> SerializeTupleStruct for &mut FeatureSerializer<'a, S> 
     where
         T: Serialize,
     {
-        Err(SerializeError::Unimplemented)
+        unimplemented!()
     }
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
-        Err(SerializeError::Unimplemented)
+        unimplemented!()
     }
 }
 
@@ -265,11 +265,11 @@ impl<'a, S: FeatureSink> SerializeTupleVariant for &mut FeatureSerializer<'a, S>
     where
         T: Serialize,
     {
-        Err(SerializeError::Unimplemented)
+        unimplemented!()
     }
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
-        Err(SerializeError::Unimplemented)
+        unimplemented!()
     }
 }
 impl<'a, S: FeatureSink> SerializeMap for &mut FeatureSerializer<'a, S> {
@@ -280,18 +280,18 @@ impl<'a, S: FeatureSink> SerializeMap for &mut FeatureSerializer<'a, S> {
     where
         T: Serialize,
     {
-        Err(SerializeError::Unimplemented)
+        unimplemented!()
     }
 
     fn serialize_value<T: ?Sized>(&mut self, _: &T) -> Result<(), Self::Error>
     where
         T: Serialize,
     {
-        Err(SerializeError::Unimplemented)
+        unimplemented!()
     }
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
-        Err(SerializeError::Unimplemented)
+        unimplemented!()
     }
 }
 
@@ -348,10 +348,10 @@ impl<'a, S: FeatureSink> SerializeStructVariant for &mut FeatureSerializer<'a, S
     where
         T: Serialize,
     {
-        Err(SerializeError::Unimplemented)
+        unimplemented!()
     }
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
-        Err(SerializeError::Unimplemented)
+        unimplemented!()
     }
 }

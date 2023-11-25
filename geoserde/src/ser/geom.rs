@@ -25,7 +25,15 @@ impl Container {
         use Container::*;
         match self {
             Coord => "Coord",
-            _ => todo!(),
+            Point => "Point",
+            MultiPoint => "MultiPoint",
+            Line => "Line",
+            LineString => "LineString",
+            MultiLineString => "MultiLineString",
+            Polygon => "Polygon",
+            MultiPolygon => "MultiPolygon",
+            Geometry => "Geometry",
+            GeometryCollection => "GeometryCollection",
         }
     }
 }
@@ -118,15 +126,15 @@ impl<S: GeometrySink> Serializer for &mut GeometrySerializer<'_, S> {
     }
 
     fn serialize_i8(self, v: i8) -> Result<Self::Ok, Self::Error> {
-        todo!()
+        self.serialize_f64(v.into())
     }
 
     fn serialize_i16(self, v: i16) -> Result<Self::Ok, Self::Error> {
-        todo!()
+        self.serialize_f64(v.into())
     }
 
     fn serialize_i32(self, v: i32) -> Result<Self::Ok, Self::Error> {
-        todo!()
+        self.serialize_f64(v.into())
     }
 
     fn serialize_i64(self, v: i64) -> Result<Self::Ok, Self::Error> {
@@ -134,15 +142,15 @@ impl<S: GeometrySink> Serializer for &mut GeometrySerializer<'_, S> {
     }
 
     fn serialize_u8(self, v: u8) -> Result<Self::Ok, Self::Error> {
-        todo!()
+        self.serialize_f64(v.into())
     }
 
     fn serialize_u16(self, v: u16) -> Result<Self::Ok, Self::Error> {
-        todo!()
+        self.serialize_f64(v.into())
     }
 
     fn serialize_u32(self, v: u32) -> Result<Self::Ok, Self::Error> {
-        todo!()
+        self.serialize_f64(v.into())
     }
 
     fn serialize_u64(self, v: u64) -> Result<Self::Ok, Self::Error> {
@@ -150,7 +158,7 @@ impl<S: GeometrySink> Serializer for &mut GeometrySerializer<'_, S> {
     }
 
     fn serialize_f32(self, v: f32) -> Result<Self::Ok, Self::Error> {
-        todo!()
+        self.serialize_f64(v.into())
     }
 
     fn serialize_f64(self, v: f64) -> Result<Self::Ok, Self::Error> {

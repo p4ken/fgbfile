@@ -2,7 +2,6 @@ use std::{error::Error, fmt::Display};
 
 #[derive(Debug)]
 pub enum SerializeError<E> {
-    Unimplemented,
     DataSouceCaused(String),
     MalformedFeature,
     NoGeometryField,
@@ -24,7 +23,6 @@ impl<E: Display> Display for SerializeError<E> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         use SerializeError::*;
         match self {
-            Unimplemented => f.write_str("not implemented"),
             DataSouceCaused(msg) => f.write_str(&msg),
             MalformedFeature => f.write_str("feature must be a struct"),
             NoGeometryField => f.write_str("feature has no geometry field"),
