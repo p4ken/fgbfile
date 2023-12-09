@@ -26,7 +26,7 @@ fn property_test() -> anyhow::Result<()> {
     let mut sink = geozero::geojson::GeoJsonWriter::new(&mut buf);
     let mut sut = PropertySerializer::new(0, "my_property", &mut sink);
     my_property().serialize(&mut sut)?;
-    assert_eq!(r#""double": 1.1, "integer": 2"#, String::from_utf8(buf)?);
+    assert_eq!(r#""id": 1, "length": 2.2"#, String::from_utf8(buf)?);
     Ok(())
 }
 
@@ -39,6 +39,8 @@ fn feature_test() -> anyhow::Result<()> {
     let mut sink = geozero::geojson::GeoJsonWriter::new(&mut buf);
     let mut sut = FeatureSerializer::new(&mut sink);
     my_feature().serialize(&mut sut)?;
+
+    // "id": 1{"type": "LineString", "coordinates": [[139.691667,35.689722],[139.7454329,35.6585805]]}, "length": 2.2
     println!("{}", String::from_utf8(buf)?);
     Ok(())
 }
@@ -47,27 +49,24 @@ fn my_geometry() -> LS {
     vec![(139.691667, 35.689722), (139.7454329, 35.6585805)].into()
 }
 fn my_property() -> MyProperty {
-    MyProperty {
-        double: 1.1,
-        integer: 2,
-    }
+    MyProperty { id: 1, length: 2.2 }
 }
 fn my_feature() -> MyFeature {
-    let MyProperty { double, integer } = my_property();
+    let MyProperty { id, length } = my_property();
     MyFeature {
         geometry: my_geometry(),
-        double,
-        integer,
+        id,
+        length,
     }
 }
 #[derive(Serialize)]
 struct MyProperty {
-    double: f64,
-    integer: i32,
+    id: i32,
+    length: f64,
 }
 #[derive(Serialize)]
 struct MyFeature {
-    double: f64,
+    id: i32,
     geometry: LS,
-    integer: i32,
+    length: f64,
 }

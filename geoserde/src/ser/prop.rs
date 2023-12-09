@@ -283,8 +283,8 @@ impl<S: PropertySink> Serializer for &mut PropertySerializer<'_, S> {
 
     fn serialize_struct(
         self,
-        name: &'static str,
-        len: usize,
+        _name: &'static str,
+        _len: usize,
     ) -> Result<Self::SerializeStruct, Self::Error> {
         // flatten the struct
         Ok(self)
