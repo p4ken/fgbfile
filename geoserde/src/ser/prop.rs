@@ -199,6 +199,7 @@ impl<S: PropertySink> Serializer for &mut PropertySerializer<'_, S> {
         Ok(self.index)
     }
     fn serialize_none(self) -> Result<Self::Ok, Self::Error> {
+        self.index += 1;
         Ok(self.index)
     }
     fn serialize_some<T: ?Sized>(self, value: &T) -> Result<Self::Ok, Self::Error>
@@ -210,10 +211,12 @@ impl<S: PropertySink> Serializer for &mut PropertySerializer<'_, S> {
     }
 
     fn serialize_unit(self) -> Result<Self::Ok, Self::Error> {
+        // skip it
         Ok(self.index)
     }
 
     fn serialize_unit_struct(self, _: &'static str) -> Result<Self::Ok, Self::Error> {
+        // skip it
         Ok(self.index)
     }
 
@@ -223,6 +226,7 @@ impl<S: PropertySink> Serializer for &mut PropertySerializer<'_, S> {
         _: u32,
         _: &'static str,
     ) -> Result<Self::Ok, Self::Error> {
+        // skip it
         Ok(self.index)
     }
 
@@ -252,6 +256,7 @@ impl<S: PropertySink> Serializer for &mut PropertySerializer<'_, S> {
     }
 
     fn serialize_seq(self, len: Option<usize>) -> Result<Self::SerializeSeq, Self::Error> {
+        // TODO: csv?
         todo!()
     }
 
@@ -286,7 +291,7 @@ impl<S: PropertySink> Serializer for &mut PropertySerializer<'_, S> {
         _name: &'static str,
         _len: usize,
     ) -> Result<Self::SerializeStruct, Self::Error> {
-        // flatten the struct
+        // flatten it
         Ok(self)
     }
 

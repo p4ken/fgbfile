@@ -9,6 +9,7 @@ pub enum SerializeError<E> {
         name: &'static str,
         expected: &'static str,
     },
+    GeometrySinkCaused(E),
     PropertySinkCaused(E),
 }
 impl<E: Error> serde::ser::Error for SerializeError<E> {
@@ -29,6 +30,7 @@ impl<E: Display> Display for SerializeError<E> {
             InvalidGeometryContainer { name, expected } => {
                 write!(f, "expected container type: {}, actual: {}", expected, name)
             }
+            GeometrySinkCaused(e) => e.fmt(f),
             PropertySinkCaused(e) => e.fmt(f),
         }
     }

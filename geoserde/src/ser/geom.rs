@@ -178,7 +178,7 @@ impl<S: GeometrySink> Serializer for &mut GeometrySerializer<'_, S> {
                 dbg!(self.coord_index);
                 self.sink
                     .xy(x, v, self.coord_index)
-                    .map_err(SerializeError::PropertySinkCaused)?;
+                    .map_err(SerializeError::GeometrySinkCaused)?;
                 self.x = None;
                 self.coord_index += 1;
             }
@@ -278,11 +278,11 @@ impl<S: GeometrySink> Serializer for &mut GeometrySerializer<'_, S> {
                 // if self.line_index == 0 {
                 //     self.sink
                 //         .geometry_begin()
-                //         .map_err(SerializeError::PropertySinkCaused)?;
+                //         .map_err(SerializeError::GeometrySinkCaused)?;
                 // }
                 self.sink
                     .linestring_begin(true, len, self.line_index)
-                    .map_err(SerializeError::PropertySinkCaused)?;
+                    .map_err(SerializeError::GeometrySinkCaused)?;
             }
             _ => (), // todo
         }
@@ -364,7 +364,7 @@ impl<S: GeometrySink> SerializeSeq for &mut GeometrySerializer<'_, S> {
             Some(Container::LineString) => {
                 self.sink
                     .linestring_end(true, self.line_index)
-                    .map_err(SerializeError::PropertySinkCaused)?;
+                    .map_err(SerializeError::GeometrySinkCaused)?;
                 self.coord_index = 0;
                 self.line_index += 1;
             }
@@ -374,7 +374,7 @@ impl<S: GeometrySink> SerializeSeq for &mut GeometrySerializer<'_, S> {
         // if self.stack.is_empty() {
         //     self.sink
         //         .geometry_end()
-        //         .map_err(SerializeError::PropertySinkCaused)?;
+        //         .map_err(SerializeError::GeometrySinkCaused)?;
         // }
         Ok(())
     }
