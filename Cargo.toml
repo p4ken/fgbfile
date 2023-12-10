@@ -3,7 +3,7 @@ members = ["geoserde"]
 
 [package]
 name = "fgbfile"
-version = "0.3.2"
+version = "0.4.0"
 edition = "2021"
 description = "create local FlatGeobuf files."
 repository = "https://github.com/p4ken/fgbfile"
