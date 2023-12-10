@@ -11,10 +11,13 @@ license = "MIT"
 exclude = [".*"]
 
 [dependencies]
-flatgeobuf = { version = "3.27.0", default-features = false }
+flatgeobuf = { version = "4.0.0", default-features = false }
 geo-types = { version = "0.7.11", features = ["serde"] }
-geoserde = { version = "0.1.0", path = "geoserde", default-features = false }
+geoserde = { version = "0.1.0", path = "geoserde" }
 serde = "1.0.193"
+thiserror = "1.0.50"
 
 [dev-dependencies]
 anyhow = "1.0.75"
+geo-types = "0.7.11"
+serde_derive = "1.0.193"

@@ -40,7 +40,7 @@ impl<'a, S: FeatureSink> FeatureSerializer<'a, S> {
         self.geom_key = key;
         self
     }
-    pub fn count(self) -> usize {
+    pub fn count(&self) -> usize {
         self.feat_index
     }
 }
@@ -345,6 +345,9 @@ impl<'a, S: FeatureSink> SerializeStruct for &mut FeatureSerializer<'a, S> {
     }
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
+        self.sink
+            .feature_end(self.feat_index)
+            .map_err(SerializeError::FeatureSinkCaused)?;
         self.feat_index += 1;
         if self.has_geom {
             Ok(())
