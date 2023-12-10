@@ -35,10 +35,11 @@ impl<'a> FgbFile<'a, BufWriter<File>> {
 }
 
 impl<'a, W: Write> FgbFile<'a, W> {
-    fn new(buf: W, name: Cow<'a, str>) -> Self {
+    /// If you want to write to a file, use [create] instead.
+    pub fn new(buf: W, name: impl Into<Cow<'a, str>>) -> Self {
         Self {
             buf,
-            name,
+            name: name.into(),
             options: FgbWriterOptions {
                 promote_to_multi: false,
                 ..Default::default()
