@@ -273,24 +273,24 @@ impl<S: PropertySink> Serializer for &mut PropertySerializer<'_, S> {
 
     fn serialize_tuple_struct(
         self,
-        name: &'static str,
-        len: usize,
+        _name: &'static str,
+        _len: usize,
     ) -> Result<Self::SerializeTupleStruct, Self::Error> {
-        todo!()
+        Ok(self)
     }
 
     fn serialize_tuple_variant(
         self,
-        name: &'static str,
-        variant_index: u32,
-        variant: &'static str,
-        len: usize,
+        _name: &'static str,
+        _variant_index: u32,
+        _variant: &'static str,
+        _len: usize,
     ) -> Result<Self::SerializeTupleVariant, Self::Error> {
-        todo!()
+        Ok(self)
     }
 
-    fn serialize_map(self, len: Option<usize>) -> Result<Self::SerializeMap, Self::Error> {
-        todo!()
+    fn serialize_map(self, _len: Option<usize>) -> Result<Self::SerializeMap, Self::Error> {
+        Ok(self)
     }
 
     fn serialize_struct(
@@ -298,18 +298,17 @@ impl<S: PropertySink> Serializer for &mut PropertySerializer<'_, S> {
         _name: &'static str,
         _len: usize,
     ) -> Result<Self::SerializeStruct, Self::Error> {
-        // flatten it
         Ok(self)
     }
 
     fn serialize_struct_variant(
         self,
-        name: &'static str,
-        variant_index: u32,
-        variant: &'static str,
-        len: usize,
+        _name: &'static str,
+        _variant_index: u32,
+        _variant: &'static str,
+        _len: usize,
     ) -> Result<Self::SerializeStructVariant, Self::Error> {
-        todo!()
+        Ok(self)
     }
 }
 
@@ -348,15 +347,16 @@ impl<S: PropertySink> SerializeTupleStruct for &mut PropertySerializer<'_, S> {
     type Ok = ();
     type Error = SerializeError<S::Error>;
 
-    fn serialize_field<T: ?Sized>(&mut self, value: &T) -> Result<(), Self::Error>
+    fn serialize_field<T: ?Sized>(&mut self, _value: &T) -> Result<(), Self::Error>
     where
         T: Serialize,
     {
+        // key_1, key_2 ...
         todo!()
     }
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
-        todo!()
+        Ok(())
     }
 }
 
@@ -368,11 +368,11 @@ impl<S: PropertySink> SerializeTupleVariant for &mut PropertySerializer<'_, S> {
     where
         T: Serialize,
     {
-        todo!()
+        SerializeTuple::serialize_element(&mut *self, value)
     }
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
-        todo!()
+        SerializeTuple::end(&mut *self)
     }
 }
 
@@ -380,14 +380,14 @@ impl<S: PropertySink> SerializeMap for &mut PropertySerializer<'_, S> {
     type Ok = ();
     type Error = SerializeError<S::Error>;
 
-    fn serialize_key<T: ?Sized>(&mut self, key: &T) -> Result<(), Self::Error>
+    fn serialize_key<T: ?Sized>(&mut self, _key: &T) -> Result<(), Self::Error>
     where
         T: Serialize,
     {
         todo!()
     }
 
-    fn serialize_value<T: ?Sized>(&mut self, value: &T) -> Result<(), Self::Error>
+    fn serialize_value<T: ?Sized>(&mut self, _value: &T) -> Result<(), Self::Error>
     where
         T: Serialize,
     {
@@ -395,7 +395,7 @@ impl<S: PropertySink> SerializeMap for &mut PropertySerializer<'_, S> {
     }
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
-        todo!()
+        Ok(())
     }
 }
 
@@ -433,10 +433,10 @@ impl<S: PropertySink> SerializeStructVariant for &mut PropertySerializer<'_, S> 
     where
         T: Serialize,
     {
-        todo!()
+        SerializeStruct::serialize_field(&mut *self, key, value)
     }
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
-        todo!()
+        SerializeStruct::end(self)
     }
 }
