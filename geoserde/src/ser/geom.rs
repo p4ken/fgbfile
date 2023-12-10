@@ -56,7 +56,7 @@ pub trait GeometrySink {
     // fn geometry_end(&mut self) -> Result<(), Self::Error>;
 }
 #[cfg(feature = "geozero")]
-impl<G: geozero::GeomProcessor> GeometrySink for G {
+impl<Z: geozero::GeomProcessor> GeometrySink for Z {
     type Error = geozero::error::GeozeroError;
     fn xy(&mut self, x: f64, y: f64, index: usize) -> Result<(), Self::Error> {
         self.xy(x, y, index)

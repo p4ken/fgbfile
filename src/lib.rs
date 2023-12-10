@@ -11,6 +11,8 @@ use flatgeobuf::{
     },
     FgbWriter, FgbWriterOptions, GeometryType, GeozeroGeometry,
 };
+use geoserde::ser::{FeatureSerializer, SerializeError};
+use serde::Serialize;
 
 /// Output feature
 pub trait ToFgb<const N: usize> {
@@ -204,7 +206,7 @@ impl<'a, W: Write> FgbFile<'a, W> {
     }
 
     /// Write features to the fgb file.
-    pub fn write_all<I, T, const N: usize>(self, features: I) -> Result<u64, GeozeroError>
+    pub fn write_all<I, T, const N: usize>(self, features: I) -> Result<usize, GeozeroError>
     where
         I: IntoIterator<Item = T>,
         T: ToFgb<N>,
@@ -224,5 +226,22 @@ impl<'a, W: Write> FgbFile<'a, W> {
 
         writer.write(self.buf)?;
         Ok(count)
+    }
+
+    /// Write serializable features.
+    pub fn write_features<I, S>(self, features: I) -> Result<usize, SerializeError<GeozeroError>>
+    where
+        I: IntoIterator<Item = S>,
+        S: Serialize,
+    {
+        let mut writer =
+            FgbWriter::create_with_options(&self.name, GeometryType::Unknown, self.options)
+                .map_err(SerializeError::FeatureSinkCaused)?;
+        let mut ser = FeatureSerializer::new(&mut writer);
+        for feat in features {
+            feat.serialize(&mut ser)?;
+        }
+
+        Ok(ser.count())
     }
 }

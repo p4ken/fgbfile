@@ -11,6 +11,7 @@ pub enum SerializeError<E> {
     },
     GeometrySinkCaused(E),
     PropertySinkCaused(E),
+    FeatureSinkCaused(E),
 }
 impl<E: Error> serde::ser::Error for SerializeError<E> {
     fn custom<T>(msg: T) -> Self
@@ -32,6 +33,7 @@ impl<E: Display> Display for SerializeError<E> {
             }
             GeometrySinkCaused(e) => e.fmt(f),
             PropertySinkCaused(e) => e.fmt(f),
+            FeatureSinkCaused(e) => e.fmt(f),
         }
     }
 }

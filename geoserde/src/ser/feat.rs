@@ -8,14 +8,22 @@ use serde::{
 
 use super::{GeometrySerializer, GeometrySink, PropertySerializer, PropertySink, SerializeError};
 
-pub trait FeatureSink: GeometrySink + PropertySink<Error = <Self as GeometrySink>::Error> {}
-impl<T: GeometrySink + PropertySink<Error = <Self as GeometrySink>::Error>> FeatureSink for T {}
+pub trait FeatureSink: GeometrySink + PropertySink<Error = <Self as GeometrySink>::Error> {
+    fn feature_end(&mut self, index: usize) -> Result<(), <Self as GeometrySink>::Error>;
+}
+#[cfg(feature = "geozero")]
+impl<Z: geozero::FeatureProcessor> FeatureSink for Z {
+    fn feature_end(&mut self, index: usize) -> Result<(), <Self as GeometrySink>::Error> {
+        self.feature_end(index.try_into().unwrap())
+    }
+}
 
 pub struct FeatureSerializer<'a, S: FeatureSink> {
     sink: &'a mut S,
     has_geom: bool,
     geom_key: &'static str,
     prop_index: usize,
+    feat_index: usize,
 }
 
 impl<'a, S: FeatureSink> FeatureSerializer<'a, S> {
@@ -25,11 +33,15 @@ impl<'a, S: FeatureSink> FeatureSerializer<'a, S> {
             has_geom: false,
             geom_key: "geometry",
             prop_index: 0,
+            feat_index: 0,
         }
     }
-    pub fn geom_field(&mut self, key: &'static str) -> &Self {
+    pub fn geometry_key(&mut self, key: &'static str) -> &Self {
         self.geom_key = key;
         self
+    }
+    pub fn count(self) -> usize {
+        self.feat_index
     }
 }
 
@@ -333,6 +345,7 @@ impl<'a, S: FeatureSink> SerializeStruct for &mut FeatureSerializer<'a, S> {
     }
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
+        self.feat_index += 1;
         if self.has_geom {
             Ok(())
         } else {

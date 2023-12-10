@@ -27,7 +27,7 @@ pub trait PropertySink {
     fn str(&mut self, index: usize, key: &str, value: &str) -> Result<(), Self::Error>;
 }
 #[cfg(feature = "geozero")]
-impl<G: geozero::PropertyProcessor> PropertySink for G {
+impl<Z: geozero::PropertyProcessor> PropertySink for Z {
     type Error = geozero::error::GeozeroError;
 
     fn bool(&mut self, index: usize, key: &str, value: bool) -> Result<(), Self::Error> {
