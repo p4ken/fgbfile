@@ -11,29 +11,28 @@ use super::SerializeError;
 enum Container {
     Coord,
     Point,
-    MultiPoint,
-    Line,
+    _MultiPoint,
+    _Line,
     LineString { len: Option<usize> },
-    MultiLineString,
-    Polygon,
-    MultiPolygon,
-    Geometry,
-    GeometryCollection,
+    _MultiLineString,
+    _Polygon,
+    _MultiPolygon,
+    _Geometry,
+    _GeometryCollection,
 }
 impl Container {
     fn as_str(&self) -> &'static str {
-        use Container::*;
         match self {
-            Coord => "Coord",
-            Point => "Point",
-            MultiPoint => "MultiPoint",
-            Line => "Line",
-            LineString => "LineString",
-            MultiLineString => "MultiLineString",
-            Polygon => "Polygon",
-            MultiPolygon => "MultiPolygon",
-            Geometry => "Geometry",
-            GeometryCollection => "GeometryCollection",
+            Self::Coord => "Coord",
+            Self::Point => "Point",
+            Self::_MultiPoint => "MultiPoint",
+            Self::_Line => "Line",
+            Self::LineString { .. } => "LineString",
+            Self::_MultiLineString => "MultiLineString",
+            Self::_Polygon => "Polygon",
+            Self::_MultiPolygon => "MultiPolygon",
+            Self::_Geometry => "Geometry",
+            Self::_GeometryCollection => "GeometryCollection",
         }
     }
 }
@@ -167,11 +166,11 @@ impl<S: GeometrySink> Serializer for &mut GeometrySerializer<'_, S> {
             Some(Container::Coord) => (),
             arm => {
                 return Err(SerializeError::InvalidGeometryContainer {
-                    name: match arm {
+                    expected: Some("Coord"),
+                    actual: match arm {
                         Some(container) => container.as_str(),
                         None => "None",
                     },
-                    expected: "Coord",
                 })
             }
         }
@@ -185,8 +184,8 @@ impl<S: GeometrySink> Serializer for &mut GeometrySerializer<'_, S> {
                     match stack_iter.next() {
                         Some(Container::LineString { len }) => {
                             let len = len.ok_or(SerializeError::InvalidGeometryContainer {
-                                name: "unknown length",
-                                expected: "known length",
+                                expected: Some("known length"),
+                                actual: "unknown length",
                             })?;
                             self.sink
                                 .linestring_begin(true, len, self.line_index)
@@ -213,47 +212,68 @@ impl<S: GeometrySink> Serializer for &mut GeometrySerializer<'_, S> {
         Ok(())
     }
 
-    fn serialize_char(self, v: char) -> Result<Self::Ok, Self::Error> {
-        todo!()
-    }
-
-    fn serialize_str(self, v: &str) -> Result<Self::Ok, Self::Error> {
+    fn serialize_char(self, _: char) -> Result<Self::Ok, Self::Error> {
         Err(SerializeError::InvalidGeometryContainer {
-            name: "str",
-            expected: "not str",
+            expected: None,
+            actual: "char",
         })
     }
 
-    fn serialize_bytes(self, v: &[u8]) -> Result<Self::Ok, Self::Error> {
-        todo!()
+    fn serialize_str(self, _: &str) -> Result<Self::Ok, Self::Error> {
+        Err(SerializeError::InvalidGeometryContainer {
+            expected: None,
+            actual: "str",
+        })
+    }
+
+    fn serialize_bytes(self, _: &[u8]) -> Result<Self::Ok, Self::Error> {
+        Err(SerializeError::InvalidGeometryContainer {
+            expected: None,
+            actual: "bytes",
+        })
     }
 
     fn serialize_none(self) -> Result<Self::Ok, Self::Error> {
-        todo!()
+        Err(SerializeError::InvalidGeometryContainer {
+            expected: None,
+            actual: "None",
+        })
     }
 
-    fn serialize_some<T: ?Sized>(self, value: &T) -> Result<Self::Ok, Self::Error>
+    fn serialize_some<T: ?Sized>(self, _: &T) -> Result<Self::Ok, Self::Error>
     where
         T: Serialize,
     {
-        todo!()
+        Err(SerializeError::InvalidGeometryContainer {
+            expected: None,
+            actual: "Some",
+        })
     }
 
     fn serialize_unit(self) -> Result<Self::Ok, Self::Error> {
-        todo!()
+        Err(SerializeError::InvalidGeometryContainer {
+            expected: None,
+            actual: "unit",
+        })
     }
 
-    fn serialize_unit_struct(self, name: &'static str) -> Result<Self::Ok, Self::Error> {
-        todo!()
+    fn serialize_unit_struct(self, _: &'static str) -> Result<Self::Ok, Self::Error> {
+        Err(SerializeError::InvalidGeometryContainer {
+            expected: None,
+            actual: "unit struct",
+        })
     }
 
     fn serialize_unit_variant(
         self,
-        name: &'static str,
-        variant_index: u32,
-        variant: &'static str,
+        _: &'static str,
+        _: u32,
+        _: &'static str,
     ) -> Result<Self::Ok, Self::Error> {
-        todo!()
+        Err(SerializeError::InvalidGeometryContainer {
+            expected: None,
+            actual: "unit variant",
+        })
     }
 
     fn serialize_newtype_struct<T: ?Sized>(
@@ -270,8 +290,8 @@ impl<S: GeometrySink> Serializer for &mut GeometrySerializer<'_, S> {
             "Point" => Container::Point,
             name => {
                 return Err(SerializeError::InvalidGeometryContainer {
-                    name,
-                    expected: "any geometry type",
+                    expected: Some("geometry type"),
+                    actual: name,
                 })
             }
         };
@@ -293,17 +313,18 @@ impl<S: GeometrySink> Serializer for &mut GeometrySerializer<'_, S> {
     fn serialize_newtype_variant<T: ?Sized>(
         self,
         name: &'static str,
-        variant_index: u32,
-        variant: &'static str,
-        value: &T,
+        _variant_index: u32,
+        _variant: &'static str,
+        _value: &T,
     ) -> Result<Self::Ok, Self::Error>
     where
         T: Serialize,
     {
-        dbg!(name);
-        dbg!(variant_index);
-        dbg!(variant);
-        value.serialize(self)
+        // TODO Geometry
+        Err(SerializeError::InvalidGeometryContainer {
+            expected: Some("Geometry variant"),
+            actual: name,
+        })
     }
 
     fn serialize_seq(self, seq_len: Option<usize>) -> Result<Self::SerializeSeq, Self::Error> {
@@ -317,13 +338,22 @@ impl<S: GeometrySink> Serializer for &mut GeometrySerializer<'_, S> {
                 // }
                 *len = seq_len;
             }
+            None => {
+                return Err(SerializeError::InvalidGeometryContainer {
+                    expected: Some("sequene in container"),
+                    actual: "raw sequence",
+                })
+            }
             _ => todo!(),
         }
         Ok(self)
     }
 
-    fn serialize_tuple(self, len: usize) -> Result<Self::SerializeTuple, Self::Error> {
-        Ok(self)
+    fn serialize_tuple(self, _: usize) -> Result<Self::SerializeTuple, Self::Error> {
+        Err(SerializeError::InvalidGeometryContainer {
+            expected: None,
+            actual: "tuple",
+        })
     }
 
     fn serialize_tuple_struct(
@@ -331,21 +361,31 @@ impl<S: GeometrySink> Serializer for &mut GeometrySerializer<'_, S> {
         name: &'static str,
         len: usize,
     ) -> Result<Self::SerializeTupleStruct, Self::Error> {
-        todo!()
+        // TODO Triangle
+        Err(SerializeError::InvalidGeometryContainer {
+            expected: None,
+            actual: "tuple struct",
+        })
     }
 
     fn serialize_tuple_variant(
         self,
-        name: &'static str,
-        variant_index: u32,
-        variant: &'static str,
-        len: usize,
+        _: &'static str,
+        _: u32,
+        _: &'static str,
+        _: usize,
     ) -> Result<Self::SerializeTupleVariant, Self::Error> {
-        todo!()
+        Err(SerializeError::InvalidGeometryContainer {
+            expected: None,
+            actual: "tuple variant",
+        })
     }
 
-    fn serialize_map(self, len: Option<usize>) -> Result<Self::SerializeMap, Self::Error> {
-        todo!()
+    fn serialize_map(self, _: Option<usize>) -> Result<Self::SerializeMap, Self::Error> {
+        Err(SerializeError::InvalidGeometryContainer {
+            expected: None,
+            actual: "map",
+        })
     }
 
     fn serialize_struct(
@@ -359,8 +399,8 @@ impl<S: GeometrySink> Serializer for &mut GeometrySerializer<'_, S> {
             "Coord" => Container::Coord,
             name => {
                 return Err(SerializeError::InvalidGeometryContainer {
-                    name,
-                    expected: "Coord",
+                    expected: Some("Coord"),
+                    actual: name,
                 })
             }
         };
@@ -370,12 +410,15 @@ impl<S: GeometrySink> Serializer for &mut GeometrySerializer<'_, S> {
 
     fn serialize_struct_variant(
         self,
-        name: &'static str,
-        variant_index: u32,
-        variant: &'static str,
-        len: usize,
+        _: &'static str,
+        _: u32,
+        _: &'static str,
+        _: usize,
     ) -> Result<Self::SerializeStructVariant, Self::Error> {
-        todo!()
+        Err(SerializeError::InvalidGeometryContainer {
+            expected: None,
+            actual: "struct variant",
+        })
     }
 }
 

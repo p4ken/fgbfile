@@ -1,4 +1,4 @@
-use std::{fs::File, io::Cursor};
+use std::io::Cursor;
 
 use fgbfile::FgbFile;
 use flatgeobuf::{geozero::ToGeo, FallibleStreamingIterator, FeatureProperties, FgbReader};

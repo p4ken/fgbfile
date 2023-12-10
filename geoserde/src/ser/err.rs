@@ -6,8 +6,8 @@ pub enum SerializeError<E> {
     MalformedFeature,
     NoGeometryField,
     InvalidGeometryContainer {
-        name: &'static str,
-        expected: &'static str,
+        expected: Option<&'static str>,
+        actual: &'static str,
     },
     GeometrySinkCaused(E),
     PropertySinkCaused(E),
@@ -28,8 +28,21 @@ impl<E: Display> Display for SerializeError<E> {
             DataSouceCaused(msg) => f.write_str(&msg),
             MalformedFeature => f.write_str("feature must be a struct"),
             NoGeometryField => f.write_str("feature has no geometry field"),
-            InvalidGeometryContainer { name, expected } => {
-                write!(f, "expected container type: {}, actual: {}", expected, name)
+            InvalidGeometryContainer {
+                actual,
+                expected: Some(expected),
+            } => {
+                write!(
+                    f,
+                    "expected container type: {}, actual: {}",
+                    expected, actual
+                )
+            }
+            InvalidGeometryContainer {
+                actual,
+                expected: None,
+            } => {
+                write!(f, "unexpected type: {}", actual)
             }
             GeometrySinkCaused(e) => e.fmt(f),
             PropertySinkCaused(e) => e.fmt(f),
