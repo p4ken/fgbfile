@@ -5,7 +5,7 @@ members = ["geoserde"]
 name = "fgbfile"
 version = "0.3.2"
 edition = "2021"
-description = "Easily write local FlatGeobuf files."
+description = "create local FlatGeobuf files."
 repository = "https://github.com/p4ken/fgbfile"
 license = "MIT"
 exclude = [".*"]
@@ -13,7 +13,7 @@ exclude = [".*"]
 [dependencies]
 flatgeobuf = { version = "4.0.0", default-features = false }
 geo-types = { version = "0.7.11", features = ["serde"] }
-geoserde = { version = "0.1.0", path = "geoserde" }
+geoserde = { version = "0.1.1", path = "geoserde" }
 serde = "1.0.193"
 thiserror = "1.0.50"
 

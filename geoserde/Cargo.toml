@@ -4,6 +4,7 @@ version = "0.1.1"
 edition = "2021"
 description = "serializer and deserislizer for geospatial data"
 license = "MIT"
+exclude = [".*"]
 
 [features]
 # fgb = ["dep:flatgeobuf"]
