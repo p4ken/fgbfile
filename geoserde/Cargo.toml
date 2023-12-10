@@ -2,6 +2,8 @@
 name = "geoserde"
 version = "0.1.0"
 edition = "2021"
+description = "serializer and deserislizer for geospatial data"
+license = "MIT"
 
 [features]
 # fgb = ["dep:flatgeobuf"]
