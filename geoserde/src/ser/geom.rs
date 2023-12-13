@@ -178,9 +178,9 @@ impl<S: GeometrySink> Serializer for &mut GeometrySerializer<'_, S> {
             }
         }
 
-        dbg!(v);
         match self.state.x {
             Some(x) => {
+                #[cfg(debug_assertions)]
                 dbg!(self.state.coord_index);
 
                 if self.state.coord_index == 0 {
@@ -287,6 +287,7 @@ impl<S: GeometrySink> Serializer for &mut GeometrySerializer<'_, S> {
     where
         T: Serialize,
     {
+        #[cfg(debug_assertions)]
         dbg!(name);
         let container = match name {
             "LineString" => Container::LineString { len: None },
@@ -309,6 +310,7 @@ impl<S: GeometrySink> Serializer for &mut GeometrySerializer<'_, S> {
             _ => (),
         }
 
+        #[cfg(debug_assertions)]
         dbg!();
         Ok(())
     }
@@ -331,7 +333,6 @@ impl<S: GeometrySink> Serializer for &mut GeometrySerializer<'_, S> {
     }
 
     fn serialize_seq(self, seq_len: Option<usize>) -> Result<Self::SerializeSeq, Self::Error> {
-        dbg!(seq_len);
         match self.state.stack.last_mut() {
             Some(Container::LineString { len }) => {
                 // if self.state.line_index == 0 {
@@ -394,10 +395,10 @@ impl<S: GeometrySink> Serializer for &mut GeometrySerializer<'_, S> {
     fn serialize_struct(
         self,
         name: &'static str,
-        len: usize,
+        _len: usize,
     ) -> Result<Self::SerializeStruct, Self::Error> {
+        #[cfg(debug_assertions)]
         dbg!(name);
-        dbg!(len);
         let container = match name {
             "Coord" => Container::Coord,
             name => {
@@ -438,6 +439,7 @@ impl<S: GeometrySink> SerializeSeq for &mut GeometrySerializer<'_, S> {
     }
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
+        #[cfg(debug_assertions)]
         dbg!();
         match self.state.stack.pop() {
             Some(Container::LineString { .. }) => {
@@ -529,19 +531,17 @@ impl<S: GeometrySink> SerializeStruct for &mut GeometrySerializer<'_, S> {
 
     fn serialize_field<T: ?Sized>(
         &mut self,
-        key: &'static str,
+        _key: &'static str,
         value: &T,
     ) -> Result<(), Self::Error>
     where
         T: Serialize,
     {
-        dbg!(key);
         value.serialize(&mut **self)?;
         Ok(())
     }
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
-        dbg!();
         self.state.stack.pop();
         Ok(())
     }
