@@ -21,9 +21,9 @@ impl<Z: geozero::FeatureProcessor> FeatureSink for Z {
 pub struct FeatureSerializer<'a, S: FeatureSink> {
     sink: &'a mut S,
     geom_key: &'static str,
-    prop_index: usize,
     feat_index: usize,
     has_geom: bool,
+    prop_index: usize,
 }
 
 impl<'a, S: FeatureSink> FeatureSerializer<'a, S> {
@@ -31,9 +31,9 @@ impl<'a, S: FeatureSink> FeatureSerializer<'a, S> {
         Self {
             sink,
             geom_key: "geometry",
-            prop_index: 0,
             feat_index: 0,
             has_geom: false,
+            prop_index: 0,
         }
     }
     pub fn geometry_key(&mut self, key: &'static str) -> &Self {
@@ -209,6 +209,7 @@ impl<'a, S: FeatureSink> Serializer for &mut FeatureSerializer<'a, S> {
         _: usize,
     ) -> Result<Self::SerializeStruct, Self::Error> {
         self.has_geom = false;
+        self.prop_index = 0;
         Ok(self)
     }
 
