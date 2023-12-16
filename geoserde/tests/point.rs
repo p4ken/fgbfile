@@ -31,7 +31,10 @@ fn feature_test() -> anyhow::Result<()> {
     let mut sink = GeoJsonWriter::new(&mut buf);
     let mut sut = FeatureSerializer::new(&mut sink);
     feature.serialize(&mut sut)?;
-    println!("{}", String::from_utf8(buf)?);
+    assert_eq!(
+        r#"{"type": "Feature", "properties": {"id": "SO51"}, "geometry": {"type": "Point", "coordinates": [139.5860139,35.4813408]}}"#,
+        String::from_utf8(buf)?
+    );
     Ok(())
 }
 

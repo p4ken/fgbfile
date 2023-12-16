@@ -39,9 +39,6 @@ fn feature_test() -> anyhow::Result<()> {
     let mut sink = geozero::geojson::GeoJsonWriter::new(&mut buf);
     let mut sut = FeatureSerializer::new(&mut sink);
     my_feature().serialize(&mut sut)?;
-
-    // "id": 1{"type": "LineString", "coordinates": [[139.691667,35.689722],[139.7454329,35.6585805]]}, "length": 2.2
-    println!("{}", String::from_utf8(buf)?);
     Ok(())
 }
 
