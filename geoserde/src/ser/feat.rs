@@ -126,11 +126,11 @@ impl<'a, S: FeatureSink> Serializer for &mut FeatureSerializer<'a, S> {
     }
 
     fn serialize_unit(self) -> Result<Self::Ok, Self::Error> {
-        Ok(())
+        Err(SerializeError::MalformedFeature)
     }
 
     fn serialize_unit_struct(self, _: &'static str) -> Result<Self::Ok, Self::Error> {
-        Ok(())
+        Err(SerializeError::MalformedFeature)
     }
 
     fn serialize_unit_variant(
@@ -139,7 +139,7 @@ impl<'a, S: FeatureSink> Serializer for &mut FeatureSerializer<'a, S> {
         _: u32,
         _: &'static str,
     ) -> Result<Self::Ok, Self::Error> {
-        Ok(())
+        Err(SerializeError::MalformedFeature)
     }
 
     fn serialize_newtype_struct<T: ?Sized>(
@@ -208,8 +208,6 @@ impl<'a, S: FeatureSink> Serializer for &mut FeatureSerializer<'a, S> {
         _name: &'static str,
         _: usize,
     ) -> Result<Self::SerializeStruct, Self::Error> {
-        self.has_geom = false;
-        self.prop_index = 0;
         Ok(self)
     }
 
@@ -328,6 +326,7 @@ impl<'a, S: FeatureSink> SerializeStruct for &mut FeatureSerializer<'a, S> {
                 // found the first geometry field
                 Ok(()) => {
                     self.has_geom = true;
+                    /* May have to cache geometry type */
                     return Ok(());
                 }
 
@@ -343,7 +342,7 @@ impl<'a, S: FeatureSink> SerializeStruct for &mut FeatureSerializer<'a, S> {
         // serialize as a property
         let mut prop = PropertySerializer::new(self.prop_index, key, self.sink);
         value.serialize(&mut prop)?;
-        self.prop_index = prop.prop_index();
+        self.prop_index = prop.index();
         Ok(())
     }
 
@@ -351,12 +350,14 @@ impl<'a, S: FeatureSink> SerializeStruct for &mut FeatureSerializer<'a, S> {
         self.sink
             .feature_end(self.feat_index)
             .map_err(SerializeError::FeatureSinkCaused)?;
-        self.feat_index += 1;
-        if self.has_geom {
-            Ok(())
-        } else {
-            Err(SerializeError::NoGeometryField)
+        if !self.has_geom {
+            return Err(SerializeError::NoGeometryField);
         }
+
+        self.feat_index += 1;
+        self.prop_index = 0;
+        self.has_geom = false;
+        Ok(())
     }
 }
 

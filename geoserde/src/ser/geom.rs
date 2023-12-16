@@ -85,9 +85,8 @@ impl<Z: geozero::GeomProcessor> GeometrySink for Z {
     // }
 }
 
-#[derive(Default)]
-struct State {
-    /// May have to cache geometry type.
+pub struct GeometrySerializer<'a, S> {
+    sink: &'a mut S,
     stack: Vec<Container>,
     x: Option<f64>,
     coord_index: usize,
@@ -95,16 +94,15 @@ struct State {
     point_index: usize,
 }
 
-pub struct GeometrySerializer<'a, S> {
-    sink: &'a mut S,
-    state: State,
-}
-
 impl<'a, S> GeometrySerializer<'a, S> {
     pub fn new(sink: &'a mut S) -> Self {
         Self {
             sink,
-            state: Default::default(),
+            stack: Vec::new(),
+            x: None,
+            coord_index: 0,
+            line_index: 0,
+            point_index: 0,
         }
     }
 }
@@ -164,7 +162,7 @@ impl<S: GeometrySink> Serializer for &mut GeometrySerializer<'_, S> {
     }
 
     fn serialize_f64(self, v: f64) -> Result<Self::Ok, Self::Error> {
-        let mut stack_iter = self.state.stack.iter();
+        let mut stack_iter = self.stack.iter();
         match stack_iter.next_back() {
             Some(Container::Coord) => (),
             arm => {
@@ -178,12 +176,12 @@ impl<S: GeometrySink> Serializer for &mut GeometrySerializer<'_, S> {
             }
         }
 
-        match self.state.x {
+        match self.x {
             Some(x) => {
                 #[cfg(debug_assertions)]
-                dbg!(self.state.coord_index);
+                dbg!(self.coord_index);
 
-                if self.state.coord_index == 0 {
+                if self.coord_index == 0 {
                     match stack_iter.next() {
                         Some(Container::LineString { len }) => {
                             let len = len.ok_or(SerializeError::InvalidGeometryContainer {
@@ -191,12 +189,12 @@ impl<S: GeometrySink> Serializer for &mut GeometrySerializer<'_, S> {
                                 actual: "unknown length",
                             })?;
                             self.sink
-                                .linestring_begin(true, len, self.state.line_index)
+                                .linestring_begin(true, len, self.line_index)
                                 .map_err(SerializeError::GeometrySinkCaused)?;
                         }
                         Some(Container::Point) => {
                             self.sink
-                                .point_begin(self.state.point_index)
+                                .point_begin(self.point_index)
                                 .map_err(SerializeError::GeometrySinkCaused)?;
                         }
                         None => (), // single coord
@@ -205,12 +203,12 @@ impl<S: GeometrySink> Serializer for &mut GeometrySerializer<'_, S> {
                 }
 
                 self.sink
-                    .xy(x, v, self.state.coord_index)
+                    .xy(x, v, self.coord_index)
                     .map_err(SerializeError::GeometrySinkCaused)?;
-                self.state.x = None;
-                self.state.coord_index += 1;
+                self.x = None;
+                self.coord_index += 1;
             }
-            None => self.state.x = Some(v),
+            None => self.x = Some(v),
         }
         Ok(())
     }
@@ -299,13 +297,13 @@ impl<S: GeometrySink> Serializer for &mut GeometrySerializer<'_, S> {
                 })
             }
         };
-        self.state.stack.push(container);
+        self.stack.push(container);
         value.serialize(&mut *self)?;
 
-        match self.state.stack.last() {
+        match self.stack.last() {
             Some(Container::Point) => self
                 .sink
-                .point_end(self.state.point_index)
+                .point_end(self.point_index)
                 .map_err(SerializeError::GeometrySinkCaused)?,
             _ => (),
         }
@@ -333,9 +331,9 @@ impl<S: GeometrySink> Serializer for &mut GeometrySerializer<'_, S> {
     }
 
     fn serialize_seq(self, seq_len: Option<usize>) -> Result<Self::SerializeSeq, Self::Error> {
-        match self.state.stack.last_mut() {
+        match self.stack.last_mut() {
             Some(Container::LineString { len }) => {
-                // if self.state.line_index == 0 {
+                // if self.line_index == 0 {
                 //     self.sink
                 //         .geometry_begin()
                 //         .map_err(SerializeError::GeometrySinkCaused)?;
@@ -408,7 +406,7 @@ impl<S: GeometrySink> Serializer for &mut GeometrySerializer<'_, S> {
                 })
             }
         };
-        self.state.stack.push(container);
+        self.stack.push(container);
         Ok(self)
     }
 
@@ -441,22 +439,21 @@ impl<S: GeometrySink> SerializeSeq for &mut GeometrySerializer<'_, S> {
     fn end(self) -> Result<Self::Ok, Self::Error> {
         #[cfg(debug_assertions)]
         dbg!();
-        match self.state.stack.pop() {
+        match self.stack.pop() {
             Some(Container::LineString { .. }) => {
                 self.sink
-                    .linestring_end(true, self.state.line_index)
+                    .linestring_end(true, self.line_index)
                     .map_err(SerializeError::GeometrySinkCaused)?;
-                self.state.coord_index = 0;
-                self.state.line_index += 1;
+                self.coord_index = 0;
+                self.line_index += 1;
             }
             Some(_) => todo!(),
             None => (),
         }
-        if self.state.stack.is_empty() {
+        if self.stack.is_empty() {
             // self.sink
             //     .geometry_end()
             //     .map_err(SerializeError::GeometrySinkCaused)?;
-            self.state = Default::default(); // reset
         }
         Ok(())
     }
@@ -542,7 +539,7 @@ impl<S: GeometrySink> SerializeStruct for &mut GeometrySerializer<'_, S> {
     }
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
-        self.state.stack.pop();
+        self.stack.pop();
         Ok(())
     }
 }
