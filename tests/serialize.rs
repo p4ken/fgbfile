@@ -23,6 +23,9 @@ fn serialize_to_fgb() -> anyhow::Result<()> {
 
     let cursor = Cursor::new(buf);
     let mut fgb_iter = FgbReader::open(cursor)?.select_all()?;
+    assert_eq!(Some(2), fgb_iter.features_count());
+    assert_eq!(1, fgb_iter.header().columns().unwrap().len());
+
     let mut fgb_layer = Vec::new();
     while let Some(fgb_feat) = fgb_iter.next()? {
         fgb_layer.push(Feature {
@@ -30,7 +33,6 @@ fn serialize_to_fgb() -> anyhow::Result<()> {
             rank: fgb_feat.property::<i32>("rank")?,
         });
     }
-    assert_eq!(2, fgb_layer.len());
     assert!(fgb_layer.contains(&layer[0]));
     assert!(fgb_layer.contains(&layer[1]));
     Ok(())
