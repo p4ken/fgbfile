@@ -1,19 +1,18 @@
 // todo
 
 use geo_types::Point;
-use geoserde::ser::FeatureSerializer;
+use geoserde::ser::{FeatureSerializer, GeometrySerializer};
 use serde::Serialize;
 
 #[cfg(feature = "geozero")]
 #[test]
 fn geometry_test() -> anyhow::Result<()> {
-    use geoserde::ser::GeometrySerializer;
     use geozero::wkt::WktWriter;
 
     let mut buf = Vec::<u8>::new();
     let mut sink = WktWriter::new(&mut buf);
     let mut sut = GeometrySerializer::new(&mut sink);
-    my_point().serialize(&mut sut)?;
+    point_0().serialize(&mut sut)?;
     assert_eq!("POINT(139.5860139 35.4813408)", String::from_utf8(buf)?);
     Ok(())
 }
@@ -23,23 +22,51 @@ fn geometry_test() -> anyhow::Result<()> {
 fn feature_test() -> anyhow::Result<()> {
     use geozero::geojson::GeoJsonWriter;
 
-    let feature = MyFeature {
-        id: "SO51",
-        pos: my_point(),
-    };
     let mut buf = Vec::<u8>::new();
     let mut sink = GeoJsonWriter::new(&mut buf);
     let mut sut = FeatureSerializer::new(&mut sink);
-    feature.serialize(&mut sut)?;
+    feature_0().serialize(&mut sut)?;
     assert_eq!(
-        r#"{"type": "Feature", "properties": {"id": "SO51"}, "geometry": {"type": "Point", "coordinates": [139.5860139,35.4813408]}}"#,
+        r#"{"type": "Feature", "properties": {"id": "ID0"}, "geometry": {"type": "Point", "coordinates": [139.5860139,35.4813408]}}"#,
         String::from_utf8(buf)?
     );
     Ok(())
 }
 
-fn my_point() -> Point {
+#[cfg(feature = "geozero")]
+#[test]
+pub fn layer_test() -> anyhow::Result<()> {
+    use geozero::geojson::GeoJsonWriter;
+
+    let mut buf = Vec::<u8>::new();
+    let mut sink = GeoJsonWriter::new(&mut buf);
+    let mut sut = FeatureSerializer::new(&mut sink);
+    let layer = vec![feature_0(), feature_1()];
+    layer.serialize(&mut sut)?;
+    assert_eq!(
+        r#"{"type": "Feature", "properties": {"id": "ID0"}, "geometry": {"type": "Point", "coordinates": [139.5860139,35.4813408]}},
+{"type": "Feature", "properties": {"id": "ID1"}, "geometry": {"type": "Point", "coordinates": [139.7454329,35.6585805]}}"#,
+        String::from_utf8(buf)?
+    );
+    Ok(())
+}
+
+fn point_0() -> Point {
     Point::new(139.5860139, 35.4813408)
+}
+
+fn feature_0() -> MyFeature {
+    MyFeature {
+        id: "ID0",
+        pos: point_0(),
+    }
+}
+
+fn feature_1() -> MyFeature {
+    MyFeature {
+        id: "ID1",
+        pos: Point::new(139.7454329, 35.6585805),
+    }
 }
 
 #[derive(Serialize)]

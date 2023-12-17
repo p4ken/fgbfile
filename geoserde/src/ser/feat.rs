@@ -183,8 +183,7 @@ impl<'a, S: FeatureSink> Serializer for &mut FeatureSerializer<'a, S> {
     }
 
     fn serialize_seq(self, _: Option<usize>) -> Result<Self::SerializeSeq, Self::Error> {
-        // field key is required
-        Err(SerializeError::InvalidFeatureStructure)
+        Ok(self)
     }
 
     fn serialize_tuple(self, _: usize) -> Result<Self::SerializeTuple, Self::Error> {
@@ -244,15 +243,15 @@ impl<'a, S: FeatureSink> SerializeSeq for &mut FeatureSerializer<'a, S> {
     type Ok = ();
     type Error = SerializeError<<S as GeometrySink>::Error>;
 
-    fn serialize_element<T: ?Sized>(&mut self, _: &T) -> Result<(), Self::Error>
+    fn serialize_element<T: ?Sized>(&mut self, value: &T) -> Result<(), Self::Error>
     where
         T: Serialize,
     {
-        unimplemented!()
+        value.serialize(&mut **self)
     }
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
-        unimplemented!()
+        Ok(())
     }
 }
 

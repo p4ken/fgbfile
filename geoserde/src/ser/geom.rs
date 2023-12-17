@@ -237,7 +237,6 @@ impl<S: GeometrySink> Serializer for &mut GeometrySerializer<'_, S> {
                         .linestring_start(true, self.linestring_index, *len)
                         .map_err(SerializeError::SinkCaused)?;
                 }
-                [] => unreachable!(),
                 [containers @ ..] => todo!("{:?}", containers),
             }
         }
