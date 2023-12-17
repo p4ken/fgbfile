@@ -1,6 +1,3 @@
-[workspace]
-members = ["geoserde"]
-
 [package]
 name = "fgbfile"
 version = "0.4.2"
@@ -13,7 +10,7 @@ exclude = [".*"]
 [dependencies]
 flatgeobuf = { version = "4.0.0", default-features = false }
 geo-types = { version = "0.7.11", features = ["serde"] }
-geoserde = { version = "0.2.0", path = "geoserde" }
+geoserde = { version = "0.2.0" }
 serde = "1.0.193"
 thiserror = "1.0.50"
 
