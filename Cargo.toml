@@ -18,6 +18,6 @@ serde = "1.0.193"
 thiserror = "1.0.50"
 
 [dev-dependencies]
-anyhow = "1.0.75"
+anyhow = { version = "1.0.75", features = ["backtrace"] }
 geo-types = "0.7.11"
 serde_derive = "1.0.193"

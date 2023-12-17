@@ -13,10 +13,7 @@ pub enum SerializeError<E> {
     InvalidState,
 }
 impl<E: Error> serde::ser::Error for SerializeError<E> {
-    fn custom<T>(msg: T) -> Self
-    where
-        T: Display,
-    {
+    fn custom<T: Display>(msg: T) -> Self {
         Self::SouceCaused(msg.to_string())
     }
 }
@@ -29,8 +26,8 @@ impl<E: Display> Display for SerializeError<E> {
             NoGeometryField => f.write_str("feature has no geometry field"),
             InvalidFeatureStructure => f.write_str("feature must be a struct"),
             InvalidGeometryStructure {
-                actual,
                 expected: Some(expected),
+                actual,
             } => {
                 write!(
                     f,
@@ -39,8 +36,8 @@ impl<E: Display> Display for SerializeError<E> {
                 )
             }
             InvalidGeometryStructure {
-                actual,
                 expected: None,
+                actual,
             } => {
                 write!(f, "unexpected type: {}", actual)
             }

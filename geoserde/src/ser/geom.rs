@@ -8,14 +8,15 @@ use serde::{
 
 use super::SerializeError;
 
+#[derive(Debug)]
 enum Container {
     Coord,
     Point,
     _MultiPoint,
     Line,
-    LineString { len: Option<usize> },
+    LineString { len: usize },
     _MultiLineString,
-    _Polygon,
+    Polygon,
     _MultiPolygon,
     _Geometry,
     _GeometryCollection,
@@ -29,7 +30,7 @@ impl Container {
             Self::Line => "Line",
             Self::LineString { .. } => "LineString",
             Self::_MultiLineString => "MultiLineString",
-            Self::_Polygon => "Polygon",
+            Self::Polygon => "Polygon",
             Self::_MultiPolygon => "MultiPolygon",
             Self::_Geometry => "Geometry",
             Self::_GeometryCollection => "GeometryCollection",
@@ -39,43 +40,51 @@ impl Container {
 
 pub trait GeometrySink {
     type Error: std::error::Error;
-    fn xy(&mut self, x: f64, y: f64, index: usize) -> Result<(), Self::Error>;
-    fn point_begin(&mut self, index: usize) -> Result<(), Self::Error>;
+    fn coord(&mut self, index: usize, x: f64, y: f64) -> Result<(), Self::Error>;
+    fn point_start(&mut self, index: usize) -> Result<(), Self::Error>;
     fn point_end(&mut self, index: usize) -> Result<(), Self::Error>;
-    fn linestring_begin(
+    fn linestring_start(
         &mut self,
-        is_single: bool,
-        len: usize,
+        is_child: bool,
         index: usize,
+        coord_len: usize,
     ) -> Result<(), Self::Error>;
-    fn linestring_end(&mut self, is_single: bool, index: usize) -> Result<(), Self::Error>;
-    fn geometry_begin(&mut self) -> Result<(), Self::Error>;
+    fn linestring_end(&mut self, is_child: bool, index: usize) -> Result<(), Self::Error>;
+    fn polygon_start(&mut self, is_child: bool, index: usize) -> Result<(), Self::Error>;
+    fn polygon_end(&mut self, is_child: bool, index: usize) -> Result<(), Self::Error>;
+    fn geometry_start(&mut self) -> Result<(), Self::Error>;
     fn geometry_end(&mut self) -> Result<(), Self::Error>;
 }
 #[cfg(feature = "geozero")]
 impl<Z: geozero::FeatureProcessor> GeometrySink for Z {
     type Error = geozero::error::GeozeroError;
-    fn xy(&mut self, x: f64, y: f64, index: usize) -> Result<(), Self::Error> {
+    fn coord(&mut self, index: usize, x: f64, y: f64) -> Result<(), Self::Error> {
         self.xy(x, y, index)
     }
-    fn point_begin(&mut self, index: usize) -> Result<(), Self::Error> {
+    fn point_start(&mut self, index: usize) -> Result<(), Self::Error> {
         self.point_begin(index)
     }
     fn point_end(&mut self, index: usize) -> Result<(), Self::Error> {
         self.point_end(index)
     }
-    fn linestring_begin(
+    fn linestring_start(
         &mut self,
-        is_single: bool,
-        len: usize,
+        is_child: bool,
         index: usize,
+        coord_len: usize,
     ) -> Result<(), Self::Error> {
-        self.linestring_begin(is_single, len, index)
+        self.linestring_begin(!is_child, coord_len, index)
     }
-    fn linestring_end(&mut self, is_single: bool, index: usize) -> Result<(), Self::Error> {
-        self.linestring_end(is_single, index)
+    fn linestring_end(&mut self, is_child: bool, index: usize) -> Result<(), Self::Error> {
+        self.linestring_end(!is_child, index)
     }
-    fn geometry_begin(&mut self) -> Result<(), Self::Error> {
+    fn polygon_start(&mut self, is_child: bool, index: usize) -> Result<(), Self::Error> {
+        self.polygon_begin(!is_child, 1, index)
+    }
+    fn polygon_end(&mut self, is_child: bool, index: usize) -> Result<(), Self::Error> {
+        self.polygon_end(!is_child, index)
+    }
+    fn geometry_start(&mut self) -> Result<(), Self::Error> {
         self.geometry_begin()
     }
     fn geometry_end(&mut self) -> Result<(), Self::Error> {
@@ -83,13 +92,15 @@ impl<Z: geozero::FeatureProcessor> GeometrySink for Z {
     }
 }
 
+#[derive(Debug)]
 pub struct GeometrySerializer<'a, S> {
     sink: &'a mut S,
     stack: Vec<Container>,
     x: Option<f64>,
     coord_index: usize,
-    line_index: usize,
     point_index: usize,
+    linestring_index: usize,
+    polygon_index: usize,
 }
 
 impl<'a, S> GeometrySerializer<'a, S> {
@@ -99,8 +110,9 @@ impl<'a, S> GeometrySerializer<'a, S> {
             stack: Vec::new(),
             x: None,
             coord_index: 0,
-            line_index: 0,
             point_index: 0,
+            linestring_index: 0,
+            polygon_index: 0,
         }
     }
 }
@@ -178,52 +190,60 @@ impl<S: GeometrySink> Serializer for &mut GeometrySerializer<'_, S> {
             None => return Ok(self.x = Some(v)),
         };
 
-        #[cfg(debug_assertions)]
-        dbg!(self.coord_index);
-
         if self.coord_index == 0 {
-            match self.stack.first() {
-                Some(Container::Coord) => (),
-                Some(Container::Point) => {
+            match &self.stack[..] {
+                [Container::Point, ..] => {
                     if self.point_index == 0 {
                         self.sink
-                            .geometry_begin()
+                            .geometry_start()
                             .map_err(SerializeError::SinkCaused)?;
                     }
                     self.sink
-                        .point_begin(self.point_index)
+                        .point_start(self.point_index)
                         .map_err(SerializeError::SinkCaused)?;
                 }
-                Some(Container::Line) => {
-                    if self.line_index == 0 {
+                [Container::Line, ..] => {
+                    if self.linestring_index == 0 {
                         self.sink
-                            .geometry_begin()
+                            .geometry_start()
                             .map_err(SerializeError::SinkCaused)?;
                     }
                     self.sink
-                        .linestring_begin(true, 2, self.line_index)
+                        .linestring_start(false, self.linestring_index, 2)
                         .map_err(SerializeError::SinkCaused)?;
                 }
-                Some(Container::LineString { len }) => {
-                    if self.line_index == 0 {
+                [Container::LineString { len }, ..] => {
+                    if self.linestring_index == 0 {
                         self.sink
-                            .geometry_begin()
+                            .geometry_start()
                             .map_err(SerializeError::SinkCaused)?;
                     }
-                    let len = len.ok_or(SerializeError::InvalidGeometryStructure {
-                        expected: Some("known length"),
-                        actual: "unknown length",
-                    })?;
                     self.sink
-                        .linestring_begin(true, len, self.line_index)
+                        .linestring_start(false, self.linestring_index, *len)
                         .map_err(SerializeError::SinkCaused)?;
                 }
-                _ => todo!(),
+                [Container::Polygon, Container::LineString { len }, ..] => {
+                    if self.linestring_index == 0 {
+                        if self.polygon_index == 0 {
+                            self.sink
+                                .geometry_start()
+                                .map_err(SerializeError::SinkCaused)?;
+                        }
+                        self.sink
+                            .polygon_start(false, self.polygon_index)
+                            .map_err(SerializeError::SinkCaused)?;
+                    }
+                    self.sink
+                        .linestring_start(true, self.linestring_index, *len)
+                        .map_err(SerializeError::SinkCaused)?;
+                }
+                [] => unreachable!(),
+                [containers @ ..] => todo!("{:?}", containers),
             }
         }
 
         self.sink
-            .xy(x, v, self.coord_index)
+            .coord(self.coord_index, x, v)
             .map_err(SerializeError::SinkCaused)?;
         self.x = None;
         self.coord_index += 1;
@@ -303,11 +323,10 @@ impl<S: GeometrySink> Serializer for &mut GeometrySerializer<'_, S> {
     where
         T: Serialize,
     {
-        #[cfg(debug_assertions)]
-        dbg!(name);
+        // dbg!(name);
 
         let container = match name {
-            "LineString" => Container::LineString { len: None },
+            "LineString" => Container::LineString { len: 0 },
             "Point" => Container::Point,
             name => {
                 return Err(SerializeError::InvalidGeometryStructure {
@@ -328,10 +347,13 @@ impl<S: GeometrySink> Serializer for &mut GeometrySerializer<'_, S> {
                 self.point_index += 1;
             }
             Some(Container::LineString { .. }) => {
+                let is_child = self.stack.last().is_some_and(|parent| {
+                    matches!(parent, Container::Polygon | Container::_MultiLineString)
+                });
                 self.sink
-                    .linestring_end(true, self.line_index)
+                    .linestring_end(is_child, self.linestring_index)
                     .map_err(SerializeError::SinkCaused)?;
-                self.line_index += 1;
+                self.linestring_index += 1;
                 self.coord_index = 0;
             }
             Some(_) => todo!(),
@@ -344,8 +366,7 @@ impl<S: GeometrySink> Serializer for &mut GeometrySerializer<'_, S> {
                 .map_err(SerializeError::SinkCaused)?;
         }
 
-        #[cfg(debug_assertions)]
-        dbg!();
+        // dbg!();
         Ok(())
     }
 
@@ -369,15 +390,19 @@ impl<S: GeometrySink> Serializer for &mut GeometrySerializer<'_, S> {
     fn serialize_seq(self, seq_len: Option<usize>) -> Result<Self::SerializeSeq, Self::Error> {
         match self.stack.last_mut() {
             Some(Container::LineString { len }) => {
-                *len = seq_len;
+                *len = seq_len.ok_or(SerializeError::InvalidGeometryStructure {
+                    expected: Some("known length seq"),
+                    actual: "unknown length",
+                })?;
             }
+            Some(Container::Polygon) => (),
+            Some(container) => todo!("{}", container.as_str()),
             None => {
                 return Err(SerializeError::InvalidGeometryStructure {
                     expected: Some("sequene in container"),
                     actual: "raw sequence",
                 })
             }
-            _ => todo!(),
         }
         Ok(self)
     }
@@ -426,14 +451,14 @@ impl<S: GeometrySink> Serializer for &mut GeometrySerializer<'_, S> {
         name: &'static str,
         _len: usize,
     ) -> Result<Self::SerializeStruct, Self::Error> {
-        #[cfg(debug_assertions)]
-        dbg!(name);
+        // dbg!(name);
         let container = match name {
             "Coord" => Container::Coord,
             "Line" => Container::Line,
+            "Polygon" => Container::Polygon,
             name => {
                 return Err(SerializeError::InvalidGeometryStructure {
-                    expected: Some("Coord"),
+                    expected: None,
                     actual: name,
                 })
             }
@@ -469,8 +494,7 @@ impl<S: GeometrySink> SerializeSeq for &mut GeometrySerializer<'_, S> {
     }
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
-        #[cfg(debug_assertions)]
-        dbg!();
+        // dbg!();
         Ok(())
     }
 }
@@ -550,6 +574,7 @@ impl<S: GeometrySink> SerializeStruct for &mut GeometrySerializer<'_, S> {
     where
         T: Serialize,
     {
+        // dbg!(_key);
         value.serialize(&mut **self)?;
         Ok(())
     }
@@ -559,11 +584,18 @@ impl<S: GeometrySink> SerializeStruct for &mut GeometrySerializer<'_, S> {
             Some(Container::Coord) => (),
             Some(Container::Line) => {
                 self.sink
-                    .linestring_end(true, self.line_index)
+                    .linestring_end(false, self.linestring_index)
                     .map_err(SerializeError::SinkCaused)?;
-                self.line_index += 1;
+                self.linestring_index += 1;
             }
-            _ => return Err(Self::Error::InvalidState),
+            Some(Container::Polygon) => {
+                self.sink
+                    .polygon_end(false, self.polygon_index)
+                    .map_err(SerializeError::SinkCaused)?;
+                self.polygon_index += 1;
+            }
+            Some(container) => todo!("{}", container.as_str()),
+            None => return Err(Self::Error::InvalidState),
         }
 
         if self.stack.is_empty() {

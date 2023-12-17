@@ -9,20 +9,20 @@ use serde::{
 use super::{GeometrySerializer, GeometrySink, PropertySerializer, PropertySink, SerializeError};
 
 pub trait FeatureSink: GeometrySink + PropertySink<Error = <Self as GeometrySink>::Error> {
-    fn properties_begin(&mut self) -> Result<(), <Self as GeometrySink>::Error>;
+    fn properties_start(&mut self) -> Result<(), <Self as GeometrySink>::Error>;
     fn properties_end(&mut self) -> Result<(), <Self as GeometrySink>::Error>;
-    fn feature_begin(&mut self, index: usize) -> Result<(), <Self as GeometrySink>::Error>;
+    fn feature_start(&mut self, index: usize) -> Result<(), <Self as GeometrySink>::Error>;
     fn feature_end(&mut self, index: usize) -> Result<(), <Self as GeometrySink>::Error>;
 }
 #[cfg(feature = "geozero")]
 impl<Z: geozero::FeatureProcessor> FeatureSink for Z {
-    fn properties_begin(&mut self) -> Result<(), <Self as GeometrySink>::Error> {
+    fn properties_start(&mut self) -> Result<(), <Self as GeometrySink>::Error> {
         self.properties_begin()
     }
     fn properties_end(&mut self) -> Result<(), <Self as GeometrySink>::Error> {
         self.properties_end()
     }
-    fn feature_begin(&mut self, index: usize) -> Result<(), <Self as GeometrySink>::Error> {
+    fn feature_start(&mut self, index: usize) -> Result<(), <Self as GeometrySink>::Error> {
         self.feature_begin(index.try_into().unwrap())
     }
     fn feature_end(&mut self, index: usize) -> Result<(), <Self as GeometrySink>::Error> {
@@ -224,7 +224,7 @@ impl<'a, S: FeatureSink> Serializer for &mut FeatureSerializer<'a, S> {
     ) -> Result<Self::SerializeStruct, Self::Error> {
         self.remaining_field = len;
         self.sink
-            .feature_begin(self.feat_index)
+            .feature_start(self.feat_index)
             .map_err(SerializeError::SinkCaused)?;
         Ok(self)
     }
@@ -363,7 +363,7 @@ impl<'a, S: FeatureSink> SerializeStruct for &mut FeatureSerializer<'a, S> {
 
         if self.prop_index == 0 {
             self.sink
-                .properties_begin()
+                .properties_start()
                 .map_err(SerializeError::SinkCaused)?;
         }
 
