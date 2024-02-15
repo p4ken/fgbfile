@@ -18,9 +18,12 @@ fn serialize_to_fgb() -> anyhow::Result<()> {
             rank: 2,
         },
     ];
+
+    // Write fgb
     let count = FgbFile::new(&mut buf, "my_layer").write_features(&layer)?;
     assert_eq!(count, 2);
 
+    // Read back
     let cursor = Cursor::new(buf);
     let mut fgb_iter = FgbReader::open(cursor)?.select_all()?;
     assert_eq!(Some(2), fgb_iter.features_count());

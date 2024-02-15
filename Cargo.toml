@@ -2,7 +2,7 @@
 name = "fgbfile"
 version = "0.4.3"
 edition = "2021"
-description = "create local FlatGeobuf files."
+description = "Create FlatGeobuf files"
 repository = "https://github.com/p4ken/fgbfile"
 license = "MIT"
 exclude = [".*"]

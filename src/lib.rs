@@ -1,3 +1,5 @@
+#![doc = include_str!("../README.md")]
+
 use std::{
     borrow::Cow,
     fs::File,
@@ -12,6 +14,13 @@ use serde::Serialize;
 
 mod err;
 
+/// Builder and serializer for fgb files.
+///
+/// # Examples
+///
+/// ```no_run
+#[doc = include_str!("../examples/serialize.rs")]
+/// ```
 pub struct FgbFile<'a, B> {
     buf: B,
     name: Cow<'a, str>,
