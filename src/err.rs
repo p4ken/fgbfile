@@ -1,5 +1,5 @@
 use flatgeobuf::geozero::error::GeozeroError;
-use geoserde::ser::SerializeError;
+use geoserde::SerializeError;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
