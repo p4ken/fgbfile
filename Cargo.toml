@@ -1,6 +1,6 @@
 [package]
 name = "fgbfile"
-version = "0.4.4"
+version = "0.4.5"
 edition = "2021"
 description = "Create FlatGeobuf files"
 repository = "https://github.com/p4ken/fgbfile"
