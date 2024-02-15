@@ -1,4 +1,14 @@
-#![doc = include_str!("../README.md")]
+//! Simple builder and serializer for fgb files with wrapping official flatgeobuf crate.
+//!
+//! At this time only writing fgb is supported (not reading).
+//!
+//! # Examples
+//!
+//! Create my_layer.fgb and write two features.
+//!
+//! ```no_run
+#![doc = include_str!("../examples/serialize.rs")]
+//! ```
 
 use std::{
     borrow::Cow,
@@ -17,6 +27,8 @@ mod err;
 /// Builder and serializer for fgb files.
 ///
 /// # Examples
+///
+/// Create my_layer.fgb and write two features.
 ///
 /// ```no_run
 #[doc = include_str!("../examples/serialize.rs")]
