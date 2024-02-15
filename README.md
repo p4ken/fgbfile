@@ -20,7 +20,7 @@ cargo add fgbfile
 
 Create my_layer.fgb and write two features.
 
-```rs,no_run
+```no_run
 use fgbfile::FgbFile;
 use geo_types::LineString;
 use serde_derive::Serialize;
