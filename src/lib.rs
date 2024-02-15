@@ -7,7 +7,7 @@ use std::{
 
 use err::FgbFileError;
 use flatgeobuf::{FgbWriter, FgbWriterOptions, GeometryType};
-use geoserde::ser::FeatureSerializer;
+use geoserde::FeatureSerializer;
 use serde::Serialize;
 
 mod err;
