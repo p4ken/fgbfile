@@ -28,7 +28,7 @@ mod err;
 ///
 /// # Examples
 ///
-/// Create my_layer.fgb and write two features.
+/// Create layer.fgb and write two features.
 ///
 /// ```no_run
 #[doc = include_str!("../examples/serialize.rs")]
