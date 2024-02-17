@@ -1,12 +1,11 @@
 # fgbfile
 
-| [crates.io](https://crates.io/crates/fgbfile) 
-| [docs.rs](https://docs.rs/fgbfile/latest/fgbfile/) 
-| [github](https://github.com/p4ken/fgbfile) |
+[![crates.io](https://img.shields.io/crates/v/fgbfile.svg?color)](https://crates.io/crates/fgbfile)
+[![docs.rs](https://img.shields.io/badge/_-docs.rs-slategray?logo=docsdotrs)](https://docs.rs/fgbfile/)
 
-Simple builder and serializer for fgb files with wrapping [official flatgeobuf crate](https://crates.io/crates/flatgeobuf).
+Simple builder and serializer for fgb files with wrapping [official flatgeobuf implementation](https://crates.io/crates/flatgeobuf).
 
-At this time only writing fgb is supported (not reading).
+Currently only supported to write fgb (not to read).
 
 ## Getting started
 
