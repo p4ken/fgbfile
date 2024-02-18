@@ -88,7 +88,7 @@ impl<'a, W: Write> FgbFile<'a, W> {
             for feat in features {
                 feat.serialize(&mut ser)?;
             }
-            count = ser.count();
+            count = ser.len();
         }
         writer.write(self.buf)?;
         Ok(count)

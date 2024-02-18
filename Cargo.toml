@@ -10,7 +10,7 @@ exclude = [".*"]
 [dependencies]
 flatgeobuf = { version = "4.0.0", default-features = false }
 geo-types = { version = "0.7.11", features = ["serde"] }
-geoserde = { version = "0.3.0" }
+geoserde = "0.4.0"
 serde = "1.0.193"
 thiserror = "1.0.50"
 
