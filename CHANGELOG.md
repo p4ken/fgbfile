@@ -4,6 +4,11 @@
 
 ### Breaking changes
 
+## v0.5.1
+
+### Fixed
+
+* Specify v4.0.x for Flatgeobuf as v4.1.0 contains breaking dependency change that causes build error.
 
 ## v0.5.0
 
