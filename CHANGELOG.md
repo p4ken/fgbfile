@@ -4,6 +4,8 @@
 
 ### Breaking changes
 
+* Upgrade dependencies
+
 ## v0.5.1
 
 ### Fixed
