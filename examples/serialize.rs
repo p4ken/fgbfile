@@ -14,15 +14,18 @@ fn main() -> anyhow::Result<()> {
         },
     ];
 
-    FgbFile::create("./layer.fgb")?.write_features(&my_layer)?;
+    let mut fgb = FgbFile::create("./layer.fgb")?;
+    for feat in my_layer {
+        fgb.deserialize_property(&feat);
+        fgb.write_geometry(&feat.road);
+    }
     Ok(())
 }
 
 // The feature implements serde::Serialize
 #[derive(Serialize)]
 struct MyFeature {
-    // The first geo-types field in the struct is the geometry.
-    // The feature must have a geometry.
+    #[serde(skip)]
     road: LineString,
 
     // Rest of the fields are the prooerties.
